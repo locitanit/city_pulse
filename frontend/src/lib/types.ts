@@ -55,9 +55,6 @@ export interface City {
   longitude: number;
 }
 
-// A spec szerinti lépcsők: 0 = csak a kiválasztott város
-export const RADIUS_STEPS = [0, 10, 25, 50, 100] as const;
-
 export type DateQuick = 'today' | 'tomorrow' | 'weekend' | 'week';
 
 export interface Filters {

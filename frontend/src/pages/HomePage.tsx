@@ -10,10 +10,8 @@ const PAGE_SIZE = 24;
 
 export default function HomePage() {
   const [cities, setCities] = useState<City[]>([]);
-  // A szűrőpanel piszkozata — a lista csak a Keresés gombra frissül
+  // A szűrők minden változása automatikusan (debounce-szal) újratölti a listát
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
-  // Az éppen alkalmazott szűrők (ez hajtja a lekérdezést)
-  const [applied, setApplied] = useState<Filters>(DEFAULT_FILTERS);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -30,11 +28,11 @@ export default function HomePage() {
       setLoading(true);
       setError(null);
       try {
-        const { fromISO, toISO } = resolveDateRange(applied);
+        const { fromISO, toISO } = resolveDateRange(filters);
         const res = await fetchEvents({
-          city: applied.city,
-          radiusKm: applied.radiusKm,
-          categories: applied.categories,
+          city: filters.city,
+          radiusKm: filters.radiusKm,
+          categories: filters.categories,
           fromISO,
           toISO,
           limit: PAGE_SIZE,
@@ -48,30 +46,26 @@ export default function HomePage() {
         setLoading(false);
       }
     },
-    [applied],
+    [filters],
   );
 
-  // Betöltés induláskor és a Keresés gomb megnyomásakor (applied változására)
+  // Automatikus frissítés minden szűrőváltozásra — rövid debounce, hogy a
+  // csúszkahúzás / gyors kattintgatás ne indítson kérésözönt
   useEffect(() => {
-    void load(0, false);
+    const timer = setTimeout(() => void load(0, false), 250);
+    return () => clearTimeout(timer);
   }, [load]);
 
-  const scopeLabel = applied.city
-    ? applied.radiusKm > 0
-      ? `${applied.city} és környéke`
-      : applied.city
+  const scopeLabel = filters.city
+    ? filters.radiusKm > 0
+      ? `${filters.city} és környéke`
+      : filters.city
     : 'egész Magyarország';
 
   return (
     <>
       <Hero>
-        <FilterBar
-          cities={cities}
-          filters={filters}
-          onChange={setFilters}
-          // friss objektum, hogy változatlan piszkozatnál is újrafusson a lekérdezés
-          onSearch={() => setApplied({ ...filters })}
-        />
+        <FilterBar cities={cities} filters={filters} onChange={setFilters} />
       </Hero>
       <EventGrid
         events={events}

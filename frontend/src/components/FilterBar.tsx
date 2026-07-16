@@ -7,13 +7,12 @@ interface Props {
   cities: City[];
   filters: Filters;
   onChange: (f: Filters) => void;
-  onSearch: () => void;
 }
 
 const LABEL_CLS =
   'text-[11px] font-extrabold uppercase tracking-[0.08em] text-subtle';
 
-export default function FilterBar({ cities, filters, onChange, onSearch }: Props) {
+export default function FilterBar({ cities, filters, onChange }: Props) {
   return (
     <div className="mt-7 flex flex-col gap-4 rounded-card border border-line bg-white p-4 shadow-panel lg:mt-8 lg:gap-[18px] lg:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-3.5">
@@ -38,7 +37,7 @@ export default function FilterBar({ cities, filters, onChange, onSearch }: Props
         </label>
 
         {/* Távolság */}
-        <div className="flex flex-col gap-1.5 lg:flex-[0.9]">
+        <div className="flex flex-col gap-1.5 lg:flex-[1.2]">
           <span className={LABEL_CLS}>
             Távolság:{' '}
             <span className="text-primary-dark">
@@ -60,16 +59,6 @@ export default function FilterBar({ cities, filters, onChange, onSearch }: Props
         <div className="flex flex-col gap-1.5 lg:flex-[2]">
           <span className={LABEL_CLS}>Dátum</span>
           <DatePicks filters={filters} onChange={onChange} />
-        </div>
-
-        {/* Keresés */}
-        <div className="flex items-end">
-          <button
-            onClick={onSearch}
-            className="w-full rounded-[10px] bg-accent px-9 py-[13px] text-base font-extrabold text-white shadow-cta hover:brightness-95 lg:w-auto"
-          >
-            Keresés
-          </button>
         </div>
       </div>
 
