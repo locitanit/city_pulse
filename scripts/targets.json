@@ -1,0 +1,17 @@
+{
+  "_comment": "CityPulse scraper céllista. A GitHub Actions matrix a listát SHARD_TOTAL szeletre osztja (index % SHARD_TOTAL == SHARD_INDEX). Bővítsd nyugodtan 100+ bejegyzésig — a hash/diff réteg miatt a változatlan oldalak nem fogyasztanak LLM-kvótát. Az 'enabled': false bejegyzések kimaradnak.",
+  "targets": [
+    { "name": "Cooltix — felfedezés", "url": "https://cooltix.hu/", "enabled": true },
+    { "name": "Tixa — programok", "url": "https://tixa.hu/", "enabled": true },
+    { "name": "A38 Hajó — programok", "url": "https://www.a38.hu/programok", "enabled": true },
+    { "name": "Dürer Kert — programok", "url": "https://www.durerkert.com/", "enabled": true },
+    { "name": "Akvárium Klub — programok", "url": "https://akvariumklub.hu/programok/", "enabled": true },
+    { "name": "Trafó — programok", "url": "https://trafo.hu/programok", "enabled": true },
+    { "name": "Szegedi Szabadtéri Játékok — műsor", "url": "https://www.szegediszabadteri.hu/", "enabled": true },
+    { "name": "Hangvilla Veszprém — programok", "url": "https://www.hangvilla.com/", "enabled": true },
+    { "name": "REÖK Palota — kiállítások", "url": "https://www.reok.hu/", "enabled": true },
+    { "name": "VeszprémFest", "url": "https://www.veszpremfest.hu/", "enabled": true },
+    { "name": "Dumaszínház — műsor", "url": "https://dumaszinhaz.hu/", "enabled": true },
+    { "name": "Müpa — programok", "url": "https://www.mupa.hu/programok", "enabled": true }
+  ]
+}

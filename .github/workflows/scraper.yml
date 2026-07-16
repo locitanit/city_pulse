@@ -1,0 +1,59 @@
+# CityPulse — ütemezett scraper (matrix stratégiával)
+# A céloldalak listáját (scripts/targets.json) 5 párhuzamos shardon
+# dolgozza fel a gyorsabb lefutás és az IP-tiltások elkerülése érdekében.
+
+name: Scraper
+
+on:
+  schedule:
+    - cron: "0 4,10,16,22 * * *" # naponta 4x (UTC)
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Függőségek telepítése
+        run: pip install -r scripts/requirements.txt
+
+      - name: Scraper futtatása (shard ${{ matrix.shard }}/5)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_TOTAL: "5"
+        run: python scripts/scraper.py
+
+  apify-ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Függőségek telepítése
+        run: pip install -r scripts/requirements.txt
+
+      - name: Facebook-események átvétele (Apify)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          APIFY_DATASET_URL: ${{ secrets.APIFY_DATASET_URL }}
+        run: python scripts/apify_ingest.py

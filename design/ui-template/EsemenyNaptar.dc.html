@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#0D9DB5; --accent:#F2762B; --radius:14px; }
+  body { margin:0; background:#EDF1F2; font-family:'Manrope',sans-serif; color:#1A2B32; -webkit-font-smoothing:antialiased; }
+  a { color:#0B7285; text-decoration:none; }
+  a:hover { color:#0A5F6E; text-decoration:underline; }
+</style>
+</helmet>
+
+<section style="display:flex; gap:56px; align-items:flex-start; padding:48px; flex-wrap:wrap;">
+
+  <!-- ============ 1a · DESKTOP 1440 ============ -->
+  <div id="1a" style="display:flex; flex-direction:column; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="background:#1A2B32; color:#fff; font-size:12px; font-weight:800; padding:4px 10px; border-radius:999px;">1a</span>
+      <span style="font-size:13px; font-weight:600; color:#5B6B72;">Desktop · 1440px</span>
+    </div>
+    <div data-screen-label="Desktop" style="width:1440px; background:#fff; border-radius:18px; overflow:hidden; box-shadow:0 24px 60px rgba(16,42,50,0.12); border:1px solid #E3EAEC;">
+
+      <!-- Header -->
+      <header style="display:flex; align-items:center; justify-content:space-between; padding:18px 48px; border-bottom:1px solid #ECF1F2;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:36px; height:36px; border-radius:10px; background:var(--primary); display:grid; place-items:center; color:#fff; font-weight:800; font-size:18px;">E</div>
+          <div style="font-size:20px; font-weight:800; letter-spacing:-0.02em;">Esemény<span style="color:var(--primary);">Naptár</span></div>
+        </div>
+        <nav style="display:flex; align-items:center; gap:32px;">
+          <a href="#" style="font-size:15px; font-weight:700; color:#1A2B32; text-decoration:none;">Események</a>
+          <a href="#" style="font-size:15px; font-weight:600; color:#5B6B72; text-decoration:none;">Helyszínek</a>
+          <a href="#" style="font-size:15px; font-weight:600; color:#5B6B72; text-decoration:none;">Naptár</a>
+          <a href="#" style="font-size:15px; font-weight:600; color:#5B6B72; text-decoration:none;">Rólunk</a>
+          <a href="#" style="font-size:14px; font-weight:700; color:#0B7285; text-decoration:none; border:1.5px solid #BFE0E6; padding:9px 18px; border-radius:10px;" style-hover="background:#EAF7F9; text-decoration:none;">Esemény beküldése</a>
+        </nav>
+      </header>
+
+      <!-- Hero + Filter -->
+      <div style="background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 9%, white) 0%, #FFFFFF 100%); padding:56px 48px 40px;">
+        <div style="max-width:820px;">
+          <h1 style="margin:0 0 10px; font-size:44px; font-weight:800; letter-spacing:-0.03em; line-height:1.1;">Fedezd fel a kultúrát. <span style="color:var(--primary);">Egy helyen.</span></h1>
+          <p style="margin:0; font-size:17px; color:#5B6B72; font-weight:500;">Koncertek, kiállítások, színház és fesztiválok Magyarország minden városából — naprakészen.</p>
+        </div>
+
+        <div style="margin-top:32px; background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); box-shadow:0 12px 32px rgba(16,42,50,0.08); padding:22px 24px; display:flex; flex-direction:column; gap:18px;">
+          <div style="display:flex; gap:14px; align-items:stretch;">
+            <label style="flex:1.1; display:flex; flex-direction:column; gap:6px; position:relative;">
+              <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#7C8B91;">Város</span>
+              <select style="appearance:none; -webkit-appearance:none; width:100%; font-family:'Manrope',sans-serif; font-size:15px; font-weight:700; color:#1A2B32; background:#fff; border:1.5px solid #CFE3E7; border-radius:10px; padding:12px 40px 12px 14px; cursor:pointer;">
+                <option>Szeged</option>
+                <option>Veszprém</option>
+                <option>Budapest</option>
+                <option>Debrecen</option>
+                <option>Pécs</option>
+              </select>
+              <span style="position:absolute; right:14px; bottom:14px; color:#7C8B91; font-size:12px; pointer-events:none;">▾</span>
+            </label>
+            <div style="flex:0.9; display:flex; flex-direction:column; gap:6px;">
+              <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#7C8B91;">Távolság: <span style="color:#0B7285;">{{ radiusLabel }}</span></span>
+              <div style="display:flex; align-items:center; border:1.5px solid #CFE3E7; border-radius:10px; padding:12px 14px;">
+                <input type="range" min="5" max="100" step="5" value="{{ radiusKm }}" onChange="{{ setRadius }}" style="width:100%; accent-color:var(--primary); cursor:pointer; margin:0; height:19px;">
+              </div>
+            </div>
+            <div style="flex:2; display:flex; flex-direction:column; gap:6px;">
+              <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#7C8B91;">Dátum</span>
+              <div style="display:flex; gap:8px;">
+                <button data-on="1" onClick="{{ pickDate }}" style="font-family:'Manrope',sans-serif; font-size:14px; font-weight:700; padding:12px 18px; border-radius:10px; border:1.5px solid var(--primary); background:var(--primary); color:#fff; cursor:pointer;">Ma</button>
+                <button data-on="0" onClick="{{ pickDate }}" style="font-family:'Manrope',sans-serif; font-size:14px; font-weight:700; padding:12px 18px; border-radius:10px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Hétvégén</button>
+                <button data-on="0" onClick="{{ pickDate }}" style="font-family:'Manrope',sans-serif; font-size:14px; font-weight:700; padding:12px 18px; border-radius:10px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">2 héten belül</button>
+                <button data-on="0" onClick="{{ pickDate }}" style="font-family:'Manrope',sans-serif; font-size:14px; font-weight:700; padding:12px 18px; border-radius:10px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Dátum kiválasztása…</button>
+              </div>
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+              <button style="font-family:'Manrope',sans-serif; font-size:16px; font-weight:800; padding:13px 36px; border-radius:10px; border:none; background:var(--accent); color:#fff; cursor:pointer; box-shadow:0 8px 18px color-mix(in oklab, var(--accent) 35%, transparent);" style-hover="filter:brightness(0.94);">Keresés</button>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; border-top:1px solid #ECF1F2; padding-top:16px;">
+            <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#7C8B91; margin-right:4px;">Típus</span>
+            <button data-on="1" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 16px; border-radius:999px; border:1.5px solid var(--primary); background:var(--primary); color:#fff; cursor:pointer;">Könnyűzene</button>
+            <button data-on="0" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 16px; border-radius:999px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Kiállítás</button>
+            <button data-on="1" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 16px; border-radius:999px; border:1.5px solid var(--primary); background:var(--primary); color:#fff; cursor:pointer;">Színház</button>
+            <button data-on="0" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 16px; border-radius:999px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Komolyzene</button>
+            <button data-on="0" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 16px; border-radius:999px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Fesztivál</button>
+            <button data-on="0" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 16px; border-radius:999px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Gasztro</button>
+            <button data-on="0" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 16px; border-radius:999px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Család</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <main style="padding:8px 48px 56px;">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:22px;">
+          <div style="display:flex; align-items:baseline; gap:14px;">
+            <h2 style="margin:0; font-size:24px; font-weight:800; letter-spacing:-0.02em;">Aktuális események</h2>
+            <span style="font-size:14px; font-weight:600; color:#7C8B91;">132 találat · Szeged és környéke</span>
+          </div>
+          <div style="font-size:14px; font-weight:700; color:#33565E;">Rendezés: <span style="color:#0B7285;">Legkorábbi ▾</span></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:24px;">
+
+          <!-- Card 1 -->
+          <article style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .2s, transform .2s;" style-hover="box-shadow:0 16px 36px rgba(16,42,50,0.12); transform:translateY(-3px);">
+            <div style="position:relative; height:168px; background:repeating-linear-gradient(135deg, color-mix(in oklab, var(--primary) 16%, white) 0 14px, color-mix(in oklab, var(--primary) 26%, white) 14px 28px); display:grid; place-items:center;">
+              <span style="font-family:monospace; font-size:12px; color:#0B5560; background:rgba(255,255,255,0.75); padding:4px 10px; border-radius:6px;">koncert fotó</span>
+              <div style="position:absolute; top:12px; left:12px; background:#fff; border-radius:10px; padding:7px 12px; text-align:center; box-shadow:0 4px 12px rgba(16,42,50,0.15);">
+                <div style="font-size:19px; font-weight:800; line-height:1;">24</div>
+                <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--accent);">JÚL</div>
+              </div>
+            </div>
+            <div style="padding:18px 18px 20px; display:flex; flex-direction:column; gap:9px; flex:1;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:11px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:#0B7285; background:color-mix(in oklab, var(--primary) 12%, white); padding:4px 10px; border-radius:999px;">Könnyűzene</span>
+                <span style="font-size:13px; font-weight:700; color:#7C8B91;">20:00</span>
+              </div>
+              <h3 style="margin:0; font-size:18px; font-weight:800; letter-spacing:-0.01em; line-height:1.25;">Azahriah Koncert</h3>
+              <div style="font-size:13px; font-weight:600; color:#5B6B72;">Szegedi Szabadtéri Játékok · Szeged</div>
+              <p style="margin:0; font-size:14px; line-height:1.5; color:#44555C; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">A magyar pop üstököse hatalmas nyáresti show-val érkezik a Dóm térre — vendégekkel és új dalokkal.</p>
+              <a href="#" style="margin-top:auto; display:block; text-align:center; background:var(--accent); color:#fff; font-size:15px; font-weight:800; padding:12px 16px; border-radius:10px; text-decoration:none;" style-hover="filter:brightness(0.94); text-decoration:none; color:#fff;">Eredeti oldal / Jegyvásárlás ↗</a>
+            </div>
+          </article>
+
+          <!-- Card 2 -->
+          <article style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .2s, transform .2s;" style-hover="box-shadow:0 16px 36px rgba(16,42,50,0.12); transform:translateY(-3px);">
+            <div style="position:relative; height:168px; background:repeating-linear-gradient(135deg, color-mix(in oklab, var(--accent) 14%, white) 0 14px, color-mix(in oklab, var(--accent) 24%, white) 14px 28px); display:grid; place-items:center;">
+              <span style="font-family:monospace; font-size:12px; color:#8A4A1B; background:rgba(255,255,255,0.75); padding:4px 10px; border-radius:6px;">kiállítás fotó</span>
+              <div style="position:absolute; top:12px; left:12px; background:#fff; border-radius:10px; padding:7px 12px; text-align:center; box-shadow:0 4px 12px rgba(16,42,50,0.15);">
+                <div style="font-size:19px; font-weight:800; line-height:1;">18</div>
+                <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--accent);">JÚL</div>
+              </div>
+            </div>
+            <div style="padding:18px 18px 20px; display:flex; flex-direction:column; gap:9px; flex:1;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:11px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:#0B7285; background:color-mix(in oklab, var(--primary) 12%, white); padding:4px 10px; border-radius:999px;">Kiállítás</span>
+                <span style="font-size:13px; font-weight:700; color:#7C8B91;">10:00–18:00</span>
+              </div>
+              <h3 style="margin:0; font-size:18px; font-weight:800; letter-spacing:-0.01em; line-height:1.25;">Fény és Forma — Modern Art Kiállítás</h3>
+              <div style="font-size:13px; font-weight:600; color:#5B6B72;">REÖK Palota · Szeged</div>
+              <p style="margin:0; font-size:14px; line-height:1.5; color:#44555C; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Kortárs magyar képzőművészek fényinstallációi és szoborkísérletei a szecessziós palota termeiben.</p>
+              <a href="#" style="margin-top:auto; display:block; text-align:center; background:var(--accent); color:#fff; font-size:15px; font-weight:800; padding:12px 16px; border-radius:10px; text-decoration:none;" style-hover="filter:brightness(0.94); text-decoration:none; color:#fff;">Eredeti oldal / Jegyvásárlás ↗</a>
+            </div>
+          </article>
+
+          <!-- Card 3 -->
+          <article style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .2s, transform .2s;" style-hover="box-shadow:0 16px 36px rgba(16,42,50,0.12); transform:translateY(-3px);">
+            <div style="position:relative; height:168px; background:repeating-linear-gradient(135deg, #E4E9EB 0 14px, #D7DFE2 14px 28px); display:grid; place-items:center;">
+              <span style="font-family:monospace; font-size:12px; color:#44555C; background:rgba(255,255,255,0.75); padding:4px 10px; border-radius:6px;">előadás fotó</span>
+              <div style="position:absolute; top:12px; left:12px; background:#fff; border-radius:10px; padding:7px 12px; text-align:center; box-shadow:0 4px 12px rgba(16,42,50,0.15);">
+                <div style="font-size:19px; font-weight:800; line-height:1;">26</div>
+                <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--accent);">JÚL</div>
+              </div>
+            </div>
+            <div style="padding:18px 18px 20px; display:flex; flex-direction:column; gap:9px; flex:1;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:11px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:#0B7285; background:color-mix(in oklab, var(--primary) 12%, white); padding:4px 10px; border-radius:999px;">Színház</span>
+                <span style="font-size:13px; font-weight:700; color:#7C8B91;">19:00</span>
+              </div>
+              <h3 style="margin:0; font-size:18px; font-weight:800; letter-spacing:-0.01em; line-height:1.25;">Rómeó és Júlia</h3>
+              <div style="font-size:13px; font-weight:600; color:#5B6B72;">Hangvilla · Veszprém</div>
+              <p style="margin:0; font-size:14px; line-height:1.5; color:#44555C; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Shakespeare klasszikusa friss, mai rendezésben — a veszprémi társulat nagy sikerű nyári előadása.</p>
+              <a href="#" style="margin-top:auto; display:block; text-align:center; background:var(--accent); color:#fff; font-size:15px; font-weight:800; padding:12px 16px; border-radius:10px; text-decoration:none;" style-hover="filter:brightness(0.94); text-decoration:none; color:#fff;">Eredeti oldal / Jegyvásárlás ↗</a>
+            </div>
+          </article>
+
+          <!-- Card 4 -->
+          <article style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .2s, transform .2s;" style-hover="box-shadow:0 16px 36px rgba(16,42,50,0.12); transform:translateY(-3px);">
+            <div style="position:relative; height:168px; background:repeating-linear-gradient(135deg, color-mix(in oklab, var(--primary) 16%, white) 0 14px, color-mix(in oklab, var(--primary) 26%, white) 14px 28px); display:grid; place-items:center;">
+              <span style="font-family:monospace; font-size:12px; color:#0B5560; background:rgba(255,255,255,0.75); padding:4px 10px; border-radius:6px;">jazz est fotó</span>
+              <div style="position:absolute; top:12px; left:12px; background:#fff; border-radius:10px; padding:7px 12px; text-align:center; box-shadow:0 4px 12px rgba(16,42,50,0.15);">
+                <div style="font-size:19px; font-weight:800; line-height:1;">31</div>
+                <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--accent);">JÚL</div>
+              </div>
+            </div>
+            <div style="padding:18px 18px 20px; display:flex; flex-direction:column; gap:9px; flex:1;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:11px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:#0B7285; background:color-mix(in oklab, var(--primary) 12%, white); padding:4px 10px; border-radius:999px;">Fesztivál</span>
+                <span style="font-size:13px; font-weight:700; color:#7C8B91;">21:00</span>
+              </div>
+              <h3 style="margin:0; font-size:18px; font-weight:800; letter-spacing:-0.01em; line-height:1.25;">VeszprémFest — Jazz a Várban</h3>
+              <div style="font-size:13px; font-weight:600; color:#5B6B72;">Történelmi Várnegyed · Veszprém</div>
+              <p style="margin:0; font-size:14px; line-height:1.5; color:#44555C; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Nemzetközi jazzcsillagok a várnegyed szabadtéri színpadán, borteraszokkal és éjszakai ráadással.</p>
+              <a href="#" style="margin-top:auto; display:block; text-align:center; background:var(--accent); color:#fff; font-size:15px; font-weight:800; padding:12px 16px; border-radius:10px; text-decoration:none;" style-hover="filter:brightness(0.94); text-decoration:none; color:#fff;">Eredeti oldal / Jegyvásárlás ↗</a>
+            </div>
+          </article>
+
+          <!-- Card 5 -->
+          <article style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .2s, transform .2s;" style-hover="box-shadow:0 16px 36px rgba(16,42,50,0.12); transform:translateY(-3px);">
+            <div style="position:relative; height:168px; background:repeating-linear-gradient(135deg, color-mix(in oklab, var(--accent) 14%, white) 0 14px, color-mix(in oklab, var(--accent) 24%, white) 14px 28px); display:grid; place-items:center;">
+              <span style="font-family:monospace; font-size:12px; color:#8A4A1B; background:rgba(255,255,255,0.75); padding:4px 10px; border-radius:6px;">fesztivál fotó</span>
+              <div style="position:absolute; top:12px; left:12px; background:#fff; border-radius:10px; padding:7px 12px; text-align:center; box-shadow:0 4px 12px rgba(16,42,50,0.15);">
+                <div style="font-size:19px; font-weight:800; line-height:1;">7</div>
+                <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--accent);">AUG</div>
+              </div>
+            </div>
+            <div style="padding:18px 18px 20px; display:flex; flex-direction:column; gap:9px; flex:1;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:11px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:#0B7285; background:color-mix(in oklab, var(--primary) 12%, white); padding:4px 10px; border-radius:999px;">Gasztro</span>
+                <span style="font-size:13px; font-weight:700; color:#7C8B91;">Aug 7–9.</span>
+              </div>
+              <h3 style="margin:0; font-size:18px; font-weight:800; letter-spacing:-0.01em; line-height:1.25;">Szegedi Borfesztivál</h3>
+              <div style="font-size:13px; font-weight:600; color:#5B6B72;">Széchenyi tér · Szeged</div>
+              <p style="margin:0; font-size:14px; line-height:1.5; color:#44555C; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Három nap, ötven pincészet és kézműves gasztrosor a belváros főterén, esti akusztikus koncertekkel.</p>
+              <a href="#" style="margin-top:auto; display:block; text-align:center; background:var(--accent); color:#fff; font-size:15px; font-weight:800; padding:12px 16px; border-radius:10px; text-decoration:none;" style-hover="filter:brightness(0.94); text-decoration:none; color:#fff;">Eredeti oldal / Jegyvásárlás ↗</a>
+            </div>
+          </article>
+
+          <!-- Card 6 -->
+          <article style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .2s, transform .2s;" style-hover="box-shadow:0 16px 36px rgba(16,42,50,0.12); transform:translateY(-3px);">
+            <div style="position:relative; height:168px; background:repeating-linear-gradient(135deg, #E4E9EB 0 14px, #D7DFE2 14px 28px); display:grid; place-items:center;">
+              <span style="font-family:monospace; font-size:12px; color:#44555C; background:rgba(255,255,255,0.75); padding:4px 10px; border-radius:6px;">koncert fotó</span>
+              <div style="position:absolute; top:12px; left:12px; background:#fff; border-radius:10px; padding:7px 12px; text-align:center; box-shadow:0 4px 12px rgba(16,42,50,0.15);">
+                <div style="font-size:19px; font-weight:800; line-height:1;">2</div>
+                <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--accent);">AUG</div>
+              </div>
+            </div>
+            <div style="padding:18px 18px 20px; display:flex; flex-direction:column; gap:9px; flex:1;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:11px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:#0B7285; background:color-mix(in oklab, var(--primary) 12%, white); padding:4px 10px; border-radius:999px;">Könnyűzene</span>
+                <span style="font-size:13px; font-weight:700; color:#7C8B91;">19:30</span>
+              </div>
+              <h3 style="margin:0; font-size:18px; font-weight:800; letter-spacing:-0.01em; line-height:1.25;">Akusztik Est a Várban</h3>
+              <div style="font-size:13px; font-weight:600; color:#5B6B72;">Veszprémi Vár · Veszprém</div>
+              <p style="margin:0; font-size:14px; line-height:1.5; color:#44555C; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Meghitt akusztikus koncertsorozat a várfal tövében — hozz plédet, a naplemente ingyen jár hozzá.</p>
+              <a href="#" style="margin-top:auto; display:block; text-align:center; background:var(--accent); color:#fff; font-size:15px; font-weight:800; padding:12px 16px; border-radius:10px; text-decoration:none;" style-hover="filter:brightness(0.94); text-decoration:none; color:#fff;">Eredeti oldal / Jegyvásárlás ↗</a>
+            </div>
+          </article>
+
+        </div>
+
+        <div style="display:flex; justify-content:center; margin-top:36px;">
+          <button style="font-family:'Manrope',sans-serif; font-size:15px; font-weight:800; padding:13px 32px; border-radius:10px; border:1.5px solid #BFE0E6; background:#fff; color:#0B7285; cursor:pointer;" style-hover="background:#EAF7F9;">További események betöltése</button>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer style="border-top:1px solid #ECF1F2; padding:28px 48px; display:flex; align-items:center; justify-content:space-between; background:#FAFCFC;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:26px; height:26px; border-radius:8px; background:var(--primary); display:grid; place-items:center; color:#fff; font-weight:800; font-size:13px;">E</div>
+          <span style="font-size:14px; font-weight:700;">EseményNaptár</span>
+          <span style="font-size:13px; color:#7C8B91; font-weight:500;">· Minden esemény egy helyen. © 2026</span>
+        </div>
+        <div style="display:flex; gap:24px;">
+          <a href="#" style="font-size:13px; font-weight:600; color:#5B6B72; text-decoration:none;">Impresszum</a>
+          <a href="#" style="font-size:13px; font-weight:600; color:#5B6B72; text-decoration:none;">Adatvédelem</a>
+          <a href="#" style="font-size:13px; font-weight:600; color:#5B6B72; text-decoration:none;">Kapcsolat</a>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============ 1b · MOBILE 390 ============ -->
+  <div id="1b" style="display:flex; flex-direction:column; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="background:#1A2B32; color:#fff; font-size:12px; font-weight:800; padding:4px 10px; border-radius:999px;">1b</span>
+      <span style="font-size:13px; font-weight:600; color:#5B6B72;">Mobil · 390px</span>
+    </div>
+    <div data-screen-label="Mobil" style="width:390px; background:#fff; border-radius:28px; overflow:hidden; box-shadow:0 24px 60px rgba(16,42,50,0.12); border:1px solid #E3EAEC;">
+
+      <!-- Mobile header -->
+      <header style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #ECF1F2;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:32px; height:32px; border-radius:9px; background:var(--primary); display:grid; place-items:center; color:#fff; font-weight:800; font-size:16px;">E</div>
+          <div style="font-size:17px; font-weight:800; letter-spacing:-0.02em;">Esemény<span style="color:var(--primary);">Naptár</span></div>
+        </div>
+        <button aria-label="Menü" style="width:44px; height:44px; border:none; background:transparent; cursor:pointer; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:5px;">
+          <span style="display:block; width:22px; height:2.5px; border-radius:2px; background:#1A2B32;"></span>
+          <span style="display:block; width:22px; height:2.5px; border-radius:2px; background:#1A2B32;"></span>
+          <span style="display:block; width:14px; height:2.5px; border-radius:2px; background:#1A2B32; align-self:flex-start; margin-left:11px;"></span>
+        </button>
+      </header>
+
+      <!-- Mobile hero + filter -->
+      <div style="background:linear-gradient(180deg, color-mix(in oklab, var(--primary) 9%, white) 0%, #FFFFFF 100%); padding:24px 20px 20px;">
+        <h1 style="margin:0 0 6px; font-size:26px; font-weight:800; letter-spacing:-0.03em; line-height:1.15;">Fedezd fel a kultúrát. <span style="color:var(--primary);">Egy helyen.</span></h1>
+        <p style="margin:0 0 18px; font-size:14px; color:#5B6B72; font-weight:500; line-height:1.5;">Koncertek, kiállítások, színház és fesztiválok — naprakészen.</p>
+
+        <div style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); box-shadow:0 12px 32px rgba(16,42,50,0.08); padding:16px; display:flex; flex-direction:column; gap:14px;">
+          <label style="display:flex; flex-direction:column; gap:6px; position:relative;">
+            <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#7C8B91;">Város</span>
+            <select style="appearance:none; -webkit-appearance:none; width:100%; font-family:'Manrope',sans-serif; font-size:15px; font-weight:700; color:#1A2B32; background:#fff; border:1.5px solid #CFE3E7; border-radius:10px; padding:12px 40px 12px 14px; cursor:pointer;">
+              <option>Veszprém</option>
+              <option>Szeged</option>
+              <option>Budapest</option>
+              <option>Debrecen</option>
+              <option>Pécs</option>
+            </select>
+            <span style="position:absolute; right:14px; bottom:14px; color:#7C8B91; font-size:12px; pointer-events:none;">▾</span>
+          </label>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#7C8B91;">Távolság: <span style="color:#0B7285;">{{ radiusLabel }}</span></span>
+            <div style="display:flex; align-items:center; border:1.5px solid #CFE3E7; border-radius:10px; padding:11px 14px;">
+              <input type="range" min="5" max="100" step="5" value="{{ radiusKm }}" onChange="{{ setRadius }}" style="width:100%; accent-color:var(--primary); cursor:pointer; margin:0; height:19px;">
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#7C8B91;">Dátum</span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button data-on="1" onClick="{{ pickDate }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:10px 14px; border-radius:10px; border:1.5px solid var(--primary); background:var(--primary); color:#fff; cursor:pointer;">Ma</button>
+              <button data-on="0" onClick="{{ pickDate }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:10px 14px; border-radius:10px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Hétvégén</button>
+              <button data-on="0" onClick="{{ pickDate }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:10px 14px; border-radius:10px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Dátum…</button>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#7C8B91;">Típus</span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button data-on="1" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 14px; border-radius:999px; border:1.5px solid var(--primary); background:var(--primary); color:#fff; cursor:pointer;">Könnyűzene</button>
+              <button data-on="0" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 14px; border-radius:999px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Kiállítás</button>
+              <button data-on="0" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 14px; border-radius:999px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Színház</button>
+              <button data-on="0" onClick="{{ togglePill }}" style="font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; padding:8px 14px; border-radius:999px; border:1.5px solid #CFE3E7; background:#fff; color:#33565E; cursor:pointer;">Fesztivál</button>
+            </div>
+          </div>
+          <button style="font-family:'Manrope',sans-serif; font-size:16px; font-weight:800; padding:14px; border-radius:10px; border:none; background:var(--accent); color:#fff; cursor:pointer; box-shadow:0 8px 18px color-mix(in oklab, var(--accent) 35%, transparent);" style-hover="filter:brightness(0.94);">Keresés</button>
+        </div>
+      </div>
+
+      <!-- Mobile results -->
+      <main style="padding:4px 20px 32px; display:flex; flex-direction:column; gap:18px;">
+        <div style="display:flex; align-items:baseline; justify-content:space-between;">
+          <h2 style="margin:0; font-size:19px; font-weight:800; letter-spacing:-0.02em;">Aktuális események</h2>
+          <span style="font-size:12px; font-weight:600; color:#7C8B91;">87 találat</span>
+        </div>
+
+        <!-- M Card 1 -->
+        <article style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column;">
+          <div style="position:relative; height:150px; background:repeating-linear-gradient(135deg, color-mix(in oklab, var(--primary) 16%, white) 0 14px, color-mix(in oklab, var(--primary) 26%, white) 14px 28px); display:grid; place-items:center;">
+            <span style="font-family:monospace; font-size:12px; color:#0B5560; background:rgba(255,255,255,0.75); padding:4px 10px; border-radius:6px;">előadás fotó</span>
+            <div style="position:absolute; top:12px; left:12px; background:#fff; border-radius:10px; padding:6px 11px; text-align:center; box-shadow:0 4px 12px rgba(16,42,50,0.15);">
+              <div style="font-size:18px; font-weight:800; line-height:1;">26</div>
+              <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--accent);">JÚL</div>
+            </div>
+          </div>
+          <div style="padding:16px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="font-size:11px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:#0B7285; background:color-mix(in oklab, var(--primary) 12%, white); padding:4px 10px; border-radius:999px;">Színház</span>
+              <span style="font-size:13px; font-weight:700; color:#7C8B91;">19:00</span>
+            </div>
+            <h3 style="margin:0; font-size:17px; font-weight:800; letter-spacing:-0.01em; line-height:1.25;">Rómeó és Júlia</h3>
+            <div style="font-size:13px; font-weight:600; color:#5B6B72;">Hangvilla · Veszprém</div>
+            <p style="margin:0; font-size:14px; line-height:1.5; color:#44555C; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Shakespeare klasszikusa friss, mai rendezésben — a veszprémi társulat nagy sikerű nyári előadása.</p>
+            <a href="#" style="display:block; text-align:center; background:var(--accent); color:#fff; font-size:15px; font-weight:800; padding:13px 16px; border-radius:10px; text-decoration:none; margin-top:4px;" style-hover="filter:brightness(0.94); text-decoration:none; color:#fff;">Eredeti oldal / Jegyvásárlás ↗</a>
+          </div>
+        </article>
+
+        <!-- M Card 2 -->
+        <article style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column;">
+          <div style="position:relative; height:150px; background:repeating-linear-gradient(135deg, color-mix(in oklab, var(--accent) 14%, white) 0 14px, color-mix(in oklab, var(--accent) 24%, white) 14px 28px); display:grid; place-items:center;">
+            <span style="font-family:monospace; font-size:12px; color:#8A4A1B; background:rgba(255,255,255,0.75); padding:4px 10px; border-radius:6px;">jazz est fotó</span>
+            <div style="position:absolute; top:12px; left:12px; background:#fff; border-radius:10px; padding:6px 11px; text-align:center; box-shadow:0 4px 12px rgba(16,42,50,0.15);">
+              <div style="font-size:18px; font-weight:800; line-height:1;">31</div>
+              <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--accent);">JÚL</div>
+            </div>
+          </div>
+          <div style="padding:16px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="font-size:11px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:#0B7285; background:color-mix(in oklab, var(--primary) 12%, white); padding:4px 10px; border-radius:999px;">Fesztivál</span>
+              <span style="font-size:13px; font-weight:700; color:#7C8B91;">21:00</span>
+            </div>
+            <h3 style="margin:0; font-size:17px; font-weight:800; letter-spacing:-0.01em; line-height:1.25;">VeszprémFest — Jazz a Várban</h3>
+            <div style="font-size:13px; font-weight:600; color:#5B6B72;">Történelmi Várnegyed · Veszprém</div>
+            <p style="margin:0; font-size:14px; line-height:1.5; color:#44555C; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Nemzetközi jazzcsillagok a várnegyed szabadtéri színpadán, borteraszokkal és éjszakai ráadással.</p>
+            <a href="#" style="display:block; text-align:center; background:var(--accent); color:#fff; font-size:15px; font-weight:800; padding:13px 16px; border-radius:10px; text-decoration:none; margin-top:4px;" style-hover="filter:brightness(0.94); text-decoration:none; color:#fff;">Eredeti oldal / Jegyvásárlás ↗</a>
+          </div>
+        </article>
+
+        <!-- M Card 3 -->
+        <article style="background:#fff; border:1px solid #E3EAEC; border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column;">
+          <div style="position:relative; height:150px; background:repeating-linear-gradient(135deg, #E4E9EB 0 14px, #D7DFE2 14px 28px); display:grid; place-items:center;">
+            <span style="font-family:monospace; font-size:12px; color:#44555C; background:rgba(255,255,255,0.75); padding:4px 10px; border-radius:6px;">koncert fotó</span>
+            <div style="position:absolute; top:12px; left:12px; background:#fff; border-radius:10px; padding:6px 11px; text-align:center; box-shadow:0 4px 12px rgba(16,42,50,0.15);">
+              <div style="font-size:18px; font-weight:800; line-height:1;">2</div>
+              <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--accent);">AUG</div>
+            </div>
+          </div>
+          <div style="padding:16px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="font-size:11px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:#0B7285; background:color-mix(in oklab, var(--primary) 12%, white); padding:4px 10px; border-radius:999px;">Könnyűzene</span>
+              <span style="font-size:13px; font-weight:700; color:#7C8B91;">19:30</span>
+            </div>
+            <h3 style="margin:0; font-size:17px; font-weight:800; letter-spacing:-0.01em; line-height:1.25;">Akusztik Est a Várban</h3>
+            <div style="font-size:13px; font-weight:600; color:#5B6B72;">Veszprémi Vár · Veszprém</div>
+            <p style="margin:0; font-size:14px; line-height:1.5; color:#44555C; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Meghitt akusztikus koncertsorozat a várfal tövében — hozz plédet, a naplemente ingyen jár hozzá.</p>
+            <a href="#" style="display:block; text-align:center; background:var(--accent); color:#fff; font-size:15px; font-weight:800; padding:13px 16px; border-radius:10px; text-decoration:none; margin-top:4px;" style-hover="filter:brightness(0.94); text-decoration:none; color:#fff;">Eredeti oldal / Jegyvásárlás ↗</a>
+          </div>
+        </article>
+
+        <button style="font-family:'Manrope',sans-serif; font-size:15px; font-weight:800; padding:13px; border-radius:10px; border:1.5px solid #BFE0E6; background:#fff; color:#0B7285; cursor:pointer;" style-hover="background:#EAF7F9;">További események</button>
+      </main>
+
+      <footer style="border-top:1px solid #ECF1F2; padding:20px; text-align:center; background:#FAFCFC;">
+        <span style="font-size:12px; color:#7C8B91; font-weight:600;">EseményNaptár · Minden esemény egy helyen. © 2026</span>
+      </footer>
+    </div>
+  </div>
+
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: {},
+  &quot;primaryColor&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#0D9DB5&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Színek&quot;, &quot;options&quot;: [&quot;#0D9DB5&quot;, &quot;#1D7AE0&quot;, &quot;#0DA57C&quot;, &quot;#7A5AE0&quot;]},
+  &quot;accentColor&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#F2762B&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Színek&quot;, &quot;options&quot;: [&quot;#F2762B&quot;, &quot;#E8543F&quot;, &quot;#E0A11D&quot;, &quot;#D64B8A&quot;]},
+  &quot;cardRadius&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 14, &quot;min&quot;: 0, &quot;max&quot;: 24, &quot;step&quot;: 1, &quot;unit&quot;: &quot;px&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Megjelenés&quot;}
+}">
+class Component extends DCLogic {
+  applyVars() {
+    const r = document.documentElement.style;
+    r.setProperty('--primary', this.props.primaryColor ?? '#0D9DB5');
+    r.setProperty('--accent', this.props.accentColor ?? '#F2762B');
+    r.setProperty('--radius', (this.props.cardRadius ?? 14) + 'px');
+  }
+  componentDidMount() { this.applyVars(); }
+  componentDidUpdate() { this.applyVars(); }
+  setChip(el, on) {
+    el.dataset.on = on ? '1' : '0';
+    el.style.background = on ? 'var(--primary)' : '#FFFFFF';
+    el.style.borderColor = on ? 'var(--primary)' : '#CFE3E7';
+    el.style.color = on ? '#FFFFFF' : '#33565E';
+  }
+  state = { radiusKm: 30 };
+  renderVals() {
+    return {
+      radiusKm: this.state.radiusKm,
+      radiusLabel: this.state.radiusKm + ' km-en belül',
+      setRadius: (e) => this.setState({ radiusKm: +e.target.value }),
+      togglePill: (e) => { const el = e.currentTarget; this.setChip(el, el.dataset.on !== '1'); },
+      pickDate: (e) => {
+        const el = e.currentTarget;
+        [...el.parentElement.children].forEach((c) => this.setChip(c, false));
+        this.setChip(el, true);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
