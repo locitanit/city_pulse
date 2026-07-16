@@ -16,3 +16,4 @@ gemini_api_key.txt
 url.txt
 supabase/database_password.txt
 supabase/supabase_api_keys.txt
+*.tsbuildinfo

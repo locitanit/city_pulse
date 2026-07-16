@@ -164,7 +164,7 @@ def find_known_city(text: str) -> str | None:
 # Szöveg- és dátumkezelés
 # ---------------------------------------------------------------
 
-def html_to_text(html: str, max_chars: int = 20000) -> str:
+def html_to_text(html: str, max_chars: int = 40000) -> str:
     text = re.sub(r"<script[\s\S]*?</script>", " ", html, flags=re.I)
     text = re.sub(r"<style[\s\S]*?</style>", " ", text, flags=re.I)
     text = re.sub(r"<[^>]+>", " ", text)
@@ -288,33 +288,49 @@ def insert_events(events: list[dict[str, Any]]) -> tuple[int, int]:
 # Gemini (Google Generative Language API) helper
 # ---------------------------------------------------------------
 
+# FIGYELEM: a gemini-2.5-flash "no longer available to new users" 404-et ad —
+# ez okozta a 2026-07-16-i futás összes error:llm hibáját.
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 
 
 def gemini_json(prompt: str, response_schema: dict[str, Any]) -> Any:
-    """Strukturált JSON-válasz a Gemini API-tól; None hibánál."""
+    """Strukturált JSON-válasz a Gemini API-tól; None hibánál.
+
+    Átmeneti hibáknál (429 kvóta / 5xx túlterhelés) exponenciális
+    visszavárakozással újrapróbál.
+    """
     if not GEMINI_API_KEY:
         return None
-    try:
-        r = requests.post(
-            "https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{GEMINI_MODEL}:generateContent",
-            params={"key": GEMINI_API_KEY},
-            json={
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {
-                    "temperature": 0,
-                    "response_mime_type": "application/json",
-                    "response_schema": response_schema,
+    for attempt in range(4):
+        if attempt:
+            time.sleep(5 * 2 ** (attempt - 1))  # 5 / 10 / 20 mp
+        try:
+            r = requests.post(
+                "https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{GEMINI_MODEL}:generateContent",
+                params={"key": GEMINI_API_KEY},
+                json={
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "temperature": 0,
+                        "response_mime_type": "application/json",
+                        "response_schema": response_schema,
+                    },
                 },
-            },
-            timeout=120,
-        )
-        r.raise_for_status()
-        data = r.json()
-        raw = data["candidates"][0]["content"]["parts"][0]["text"]
-        return json.loads(raw)
-    except Exception as exc:
-        print(f"  ! Gemini hiba: {exc}")
-        return None
+                timeout=120,
+            )
+            if r.status_code == 429 or r.status_code >= 500:
+                print(f"  ! Gemini {r.status_code} — újrapróbálás ({attempt + 1}/3)")
+                continue
+            r.raise_for_status()
+            data = r.json()
+            # A gondolkodó modellek "thought" részeket is adhatnak — csak a
+            # válasz-szöveget fűzzük össze.
+            parts = data["candidates"][0]["content"]["parts"]
+            raw = "".join(p.get("text", "") for p in parts if not p.get("thought"))
+            return json.loads(raw)
+        except Exception as exc:
+            print(f"  ! Gemini hiba: {exc}")
+            return None
+    return None

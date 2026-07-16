@@ -1,8 +1,12 @@
 {
-  "_comment": "CityPulse scraper céllista. A GitHub Actions matrix a listát SHARD_TOTAL szeletre osztja (index % SHARD_TOTAL == SHARD_INDEX). Bővítsd nyugodtan 100+ bejegyzésig — a hash/diff réteg miatt a változatlan oldalak nem fogyasztanak LLM-kvótát. Az 'enabled': false bejegyzések kimaradnak.",
+  "_comment": "CityPulse scraper céllista. A GitHub Actions matrix a listát SHARD_TOTAL szeletre osztja (index % SHARD_TOTAL == SHARD_INDEX). Bővítsd nyugodtan 100+ bejegyzésig — a hash/diff réteg miatt a változatlan oldalak nem fogyasztanak LLM-kvótát. Az 'enabled': false bejegyzések kimaradnak. A Cooltix/Tixa kliens-oldali SPA (a szerver-HTML üres héj), ezért kikapcsolva — headless render vagy API-integráció kellene hozzájuk.",
   "targets": [
-    { "name": "Cooltix — felfedezés", "url": "https://cooltix.hu/", "enabled": true },
-    { "name": "Tixa — programok", "url": "https://tixa.hu/", "enabled": true },
+    { "name": "Jegy.hu — országos műsor", "url": "https://www.jegy.hu/", "enabled": true },
+    { "name": "Koncert.hu — országos koncertek", "url": "https://koncert.hu/", "enabled": true },
+    { "name": "Budapest Park — programok", "url": "https://www.budapestpark.hu/programok", "enabled": true },
+    { "name": "Magyar Állami Operaház — műsor", "url": "https://www.opera.hu/musor", "enabled": true },
+    { "name": "Cooltix — felfedezés", "url": "https://cooltix.hu/", "enabled": false },
+    { "name": "Tixa — programok", "url": "https://tixa.hu/", "enabled": false },
     { "name": "A38 Hajó — programok", "url": "https://www.a38.hu/programok", "enabled": true },
     { "name": "Dürer Kert — programok", "url": "https://www.durerkert.com/", "enabled": true },
     { "name": "Akvárium Klub — programok", "url": "https://akvariumklub.hu/programok/", "enabled": true },

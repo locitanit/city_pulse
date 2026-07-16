@@ -32,7 +32,7 @@ import common
 from common import BUDAPEST, CATEGORIES
 
 FETCH_TIMEOUT = 25
-MAX_EVENTS_PER_TARGET = 25
+MAX_EVENTS_PER_TARGET = 200
 
 # Schema.org @type → CityPulse kategória
 JSONLD_TYPE_MAP = {
