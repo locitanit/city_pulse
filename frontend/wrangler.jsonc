@@ -1,0 +1,11 @@
+// Cloudflare Workers (statikus assets) konfiguráció a CityPulse frontendhez.
+// A `npx wrangler deploy` a Vite build kimenetét (dist/) tölti fel;
+// a single-page-application beállítás miatt a /bekuldes útvonal is működik.
+{
+  "name": "city-pulse",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

@@ -151,9 +151,18 @@ Dashboard → **Settings → API**:
 
 ### 4. lépés — Cloudflare Turnstile (spam-védelem)
 
+> 💡 Ha még nem tudod a domain nevét: előbb hozd létre a Cloudflare-projektet
+> (7. lépés) — az adja a domaint (Workers-flow: `city-pulse.<fiók>.workers.dev`,
+> Pages-flow: `<projekt>.pages.dev`) —, és utána gyere vissza ide. A widget
+> domainlistája később bármikor bővíthető (pl. saját domainnel), nem kell
+> új kulcs. Turnstile nélkül is minden működik (a robot-ellenőrzés kimarad,
+> a honeypot-védelem él), fejlesztéshez pedig használhatók a Cloudflare
+> tesztkulcsai: site key `1x00000000000000000000AA`,
+> secret `1x0000000000000000000000000000000AA`.
+
 1. **https://dash.cloudflare.com** → *Turnstile* → *Add site*.
-2. Domain: az éles domained (pl. `citypulse.pages.dev`) — lokális teszthez add
-   hozzá a `localhost`-ot is.
+2. Domainek: a saját Pages-aldomained (pl. `citypulse.pages.dev` — ez a
+   preview-deployok aldomainjeit is lefedi) + lokális teszthez a `localhost`.
 3. Jegyezd fel: **Site Key** (frontendbe) és **Secret Key** (Edge Functionbe).
 
 ### 5. lépés — Gemini API kulcs (ingyenes)
@@ -185,24 +194,36 @@ automatikusan biztosítja a functionöknek.)
 
 Gyors teszt: a Dashboard → *Edge Functions* alatt mindkét function *Active*.
 
-### 7. lépés — Frontend élesítése (Cloudflare Pages)
+### 7. lépés — Frontend élesítése (Cloudflare Workers)
 
-1. **https://dash.cloudflare.com** → *Workers & Pages* → *Create* → *Pages* →
-   *Connect to Git* → válaszd ki a repót.
-2. Build beállítások:
-   - **Root directory:** `frontend`
+A Cloudflare új felülete a git-alapú projekteket Workerként deployolja — ehhez
+kell a repóban lévő `frontend/wrangler.jsonc` (már benne van; a
+`single-page-application` beállítása kezeli a React Router útvonalakat, pl.
+a `/bekuldes`-t).
+
+1. **https://dash.cloudflare.com** → *Workers & Pages* → *Create* →
+   *Import a repository* → válaszd ki a repót.
+2. A űrlap kitöltése:
+   - **Project name:** `city-pulse` (csak kisbetű, szám, kötőjel — aláhúzás nem
+     jó; egyezzen a `wrangler.jsonc` `name` mezőjével!)
    - **Build command:** `npm run build`
-   - **Build output directory:** `dist`
-3. **Environment variables** (Production):
+   - **Deploy command:** `npx wrangler deploy`
+   - **Builds for non-production branches:** maradhat bepipálva
+     (deploy parancsa: `npx wrangler versions upload`)
+   - **Advanced → Path:** `/frontend`
+   - **API token:** *Create new token* (automatikus, nem kell hozzányúlni)
+3. **Variables** — sima (NEM Encrypt) változóként, mert a Vite buildhez
+   kellenek, és amúgy is a kliensbundle-be kerülnek:
    - `VITE_SUPABASE_URL` = Project URL
    - `VITE_SUPABASE_ANON_KEY` = anon public kulcs
-   - `VITE_TURNSTILE_SITE_KEY` = Turnstile site key
-4. *Save and Deploy* → pár perc múlva él az oldal a `https://<projekt>.pages.dev`
-   címen. (A React Router útvonalakat — pl. `/bekuldes` — a Pages automatikusan
-   az `index.html`-re irányítja, külön beállítás nem kell.)
+   - `VITE_TURNSTILE_SITE_KEY` = Turnstile site key (kihagyható, később pótolható)
+4. *Deploy* → az oldal a `https://city-pulse.<fiók-név>.workers.dev` címen él
+   (a pontos URL a projekt áttekintőjében látszik) — a Turnstile-hoz ezt a
+   domaint add meg. Env változó később: *Settings → Variables and Secrets*,
+   utána *Retry deployment* / új push.
 
-Alternatíva: Vercelen ugyanez — root: `frontend`, framework preset: Vite,
-ugyanazokkal az env változókkal.
+Alternatíva: Vercelen — root: `frontend`, framework preset: Vite, ugyanazokkal
+az env változókkal; ott `<projekt>.vercel.app` lesz a domain.
 
 ### 8. lépés — GitHub Actions cronok élesítése
 
