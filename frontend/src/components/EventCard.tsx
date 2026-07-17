@@ -39,7 +39,13 @@ export default function EventCard({ event }: { event: EventItem }) {
   const badge = fmtBadge(event.start_time);
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-card border border-line bg-white transition-all duration-200 hover:-translate-y-[3px] hover:shadow-card-hover">
+    // Az egész kártya egyetlen link az esemény eredeti oldalára
+    <a
+      href={event.source_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex flex-col overflow-hidden rounded-card border border-line bg-white text-inherit no-underline transition-all duration-200 hover:-translate-y-[3px] hover:shadow-card-hover"
+    >
       <div
         className="relative grid h-[168px] place-items-center"
         style={{ background: PATTERNS[CATEGORY_PATTERN[event.category]] }}
@@ -87,15 +93,11 @@ export default function EventCard({ event }: { event: EventItem }) {
         {event.description && (
           <p className="line-clamp-2 text-sm leading-normal text-body">{event.description}</p>
         )}
-        <a
-          href={event.source_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-auto block rounded-[10px] bg-accent px-4 py-3 text-center text-[15px] font-extrabold text-white hover:brightness-95"
-        >
+        {/* Vizuális CTA — a kattintást a kártya-szintű link kezeli */}
+        <span className="mt-auto block rounded-[10px] bg-accent px-4 py-3 text-center text-[15px] font-extrabold text-white hover:brightness-95">
           Jegyvásárlás / Eredeti oldal ↗
-        </a>
+        </span>
       </div>
-    </article>
+    </a>
   );
 }

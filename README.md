@@ -244,7 +244,8 @@ az env változókkal; ott `<projekt>.vercel.app` lesz a domain.
    események; a weboldalon beküldött teszt-esemény `pending`-ből a következő
    moderátor-futás után `approved`/`rejected` lesz.
 
-Innentől minden automatikus: a scraper naponta 4× fut (5 párhuzamos szálon),
+Innentől minden automatikus: a scraper naponta 2× fut (5 párhuzamos szálon —
+a Gemini free tier modellenként napi 20 kérése miatt nem sűrűbben),
 a moderátor óránként.
 
 ### 9. lépés — (Opcionális) Facebook-események Apify-jal
