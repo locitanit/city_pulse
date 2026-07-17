@@ -290,52 +290,71 @@ def insert_events(events: list[dict[str, Any]]) -> tuple[int, int]:
 
 # FIGYELEM: a gemini-2.5-flash "no longer available to new users" 404-et ad —
 # ez okozta a 2026-07-16-i futás összes error:llm hibáját.
+# A free tier kvótája MODELLENKÉNT napi 20 kérés
+# (GenerateRequestsPerDayPerProjectPerModel-FreeTier), ezért kimerülésnél
+# a láncban következő modellre váltunk.
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+GEMINI_MODELS = [
+    m.strip()
+    for m in os.environ.get(
+        "GEMINI_MODELS",
+        os.environ.get(
+            "GEMINI_MODEL",
+            "gemini-3.5-flash,gemini-3-flash-preview,"
+            "gemini-flash-lite-latest,gemini-3.1-flash-lite",
+        ),
+    ).split(",")
+    if m.strip()
+]
+
+# A futás során kimerültnek bizonyult modellek — ezekre nem lövünk többet.
+_exhausted_models: set[str] = set()
 
 
 def gemini_json(prompt: str, response_schema: dict[str, Any]) -> Any:
     """Strukturált JSON-válasz a Gemini API-tól; None hibánál.
 
-    Átmeneti hibáknál (429 kvóta / 5xx túlterhelés) exponenciális
-    visszavárakozással újrapróbál.
+    Átmeneti hibáknál (429 kvóta / 5xx túlterhelés) visszavárakozással
+    újrapróbál, tartós kudarcnál a GEMINI_MODELS lánc következő modelljére
+    vált (a napi kvóta modellenkénti).
     """
     if not GEMINI_API_KEY:
         return None
-    attempts = 4
-    for attempt in range(attempts):
-        if attempt:
-            time.sleep(20 * 2 ** (attempt - 1))  # 20 / 40 / 80 mp — a 429-es
-            # percenkénti kvótának idő kell, hogy visszatöltődjön
-        try:
-            r = requests.post(
-                "https://generativelanguage.googleapis.com/v1beta/models/"
-                f"{GEMINI_MODEL}:generateContent",
-                params={"key": GEMINI_API_KEY},
-                json={
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0,
-                        "response_mime_type": "application/json",
-                        "response_schema": response_schema,
+    attempts = 3
+    for model in GEMINI_MODELS:
+        if model in _exhausted_models:
+            continue
+        for attempt in range(attempts):
+            if attempt:
+                time.sleep(15 * 2 ** (attempt - 1))  # 15 / 30 mp
+            try:
+                r = requests.post(
+                    "https://generativelanguage.googleapis.com/v1beta/models/"
+                    f"{model}:generateContent",
+                    params={"key": GEMINI_API_KEY},
+                    json={
+                        "contents": [{"parts": [{"text": prompt}]}],
+                        "generationConfig": {
+                            "temperature": 0,
+                            "response_mime_type": "application/json",
+                            "response_schema": response_schema,
+                        },
                     },
-                },
-                timeout=300,
-            )
-            if r.status_code == 429 or r.status_code >= 500:
-                if attempt + 1 < attempts:
-                    print(f"  ! Gemini {r.status_code} — újrapróbálás ({attempt + 1}/{attempts - 1})")
-                else:
-                    print(f"  ! Gemini {r.status_code} — feladva {attempts} próbálkozás után")
-                continue
-            r.raise_for_status()
-            data = r.json()
-            # A gondolkodó modellek "thought" részeket is adhatnak — csak a
-            # válasz-szöveget fűzzük össze.
-            parts = data["candidates"][0]["content"]["parts"]
-            raw = "".join(p.get("text", "") for p in parts if not p.get("thought"))
-            return json.loads(raw)
-        except Exception as exc:
-            print(f"  ! Gemini hiba: {exc}")
-            return None
+                    timeout=300,
+                )
+                if r.status_code == 429 or r.status_code >= 500:
+                    print(f"  ! Gemini {r.status_code} ({model}) — {attempt + 1}. próba")
+                    continue
+                r.raise_for_status()
+                data = r.json()
+                # A gondolkodó modellek "thought" részeket is adhatnak — csak
+                # a válasz-szöveget fűzzük össze.
+                parts = data["candidates"][0]["content"]["parts"]
+                raw = "".join(p.get("text", "") for p in parts if not p.get("thought"))
+                return json.loads(raw)
+            except Exception as exc:
+                print(f"  ! Gemini hiba ({model}): {exc}")
+                return None
+        _exhausted_models.add(model)
+        print(f"  ! {model} kimerült/elérhetetlen — váltás a következő modellre")
     return None

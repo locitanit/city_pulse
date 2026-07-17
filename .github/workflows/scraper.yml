@@ -6,7 +6,9 @@ name: Scraper
 
 on:
   schedule:
-    - cron: "0 4,10,16,22 * * *" # naponta 4x (UTC)
+    # Naponta 2x (UTC) — a Gemini free tier modellenként napi 20 kérést enged,
+    # ennél sűrűbb futás kimerítené a kvótát.
+    - cron: "0 4,14 * * *"
   workflow_dispatch:
 
 jobs:
