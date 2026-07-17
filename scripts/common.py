@@ -302,9 +302,11 @@ def gemini_json(prompt: str, response_schema: dict[str, Any]) -> Any:
     """
     if not GEMINI_API_KEY:
         return None
-    for attempt in range(4):
+    attempts = 4
+    for attempt in range(attempts):
         if attempt:
-            time.sleep(5 * 2 ** (attempt - 1))  # 5 / 10 / 20 mp
+            time.sleep(20 * 2 ** (attempt - 1))  # 20 / 40 / 80 mp — a 429-es
+            # percenkénti kvótának idő kell, hogy visszatöltődjön
         try:
             r = requests.post(
                 "https://generativelanguage.googleapis.com/v1beta/models/"
@@ -318,10 +320,13 @@ def gemini_json(prompt: str, response_schema: dict[str, Any]) -> Any:
                         "response_schema": response_schema,
                     },
                 },
-                timeout=120,
+                timeout=300,
             )
             if r.status_code == 429 or r.status_code >= 500:
-                print(f"  ! Gemini {r.status_code} — újrapróbálás ({attempt + 1}/3)")
+                if attempt + 1 < attempts:
+                    print(f"  ! Gemini {r.status_code} — újrapróbálás ({attempt + 1}/{attempts - 1})")
+                else:
+                    print(f"  ! Gemini {r.status_code} — feladva {attempts} próbálkozás után")
                 continue
             r.raise_for_status()
             data = r.json()
