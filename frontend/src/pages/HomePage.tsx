@@ -60,7 +60,7 @@ export default function HomePage() {
     ? filters.radiusKm > 0
       ? `${filters.city} és környéke`
       : filters.city
-    : 'egész Magyarország';
+    : 'Szeged és környéke';
 
   return (
     <>

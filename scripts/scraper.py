@@ -34,17 +34,17 @@ from common import BUDAPEST, CATEGORIES
 FETCH_TIMEOUT = 25
 MAX_EVENTS_PER_TARGET = 200
 
-# Schema.org @type → CityPulse kategória
+# Schema.org @type → CityPulse kategóriák
 JSONLD_TYPE_MAP = {
-    "MusicEvent": "konnyuzene",
-    "TheaterEvent": "szinhaz",
-    "DanceEvent": "szinhaz",
-    "ExhibitionEvent": "kiallitas",
-    "VisualArtsEvent": "kiallitas",
-    "Festival": "fesztival",
-    "ComedyEvent": "standup",
-    "ChildrensEvent": "csaladi",
-    "SportsEvent": "sport",
+    "MusicEvent": ["konnyuzene"],
+    "TheaterEvent": ["szinhaz"],
+    "DanceEvent": ["szinhaz"],
+    "ExhibitionEvent": ["kiallitas"],
+    "VisualArtsEvent": ["kiallitas"],
+    "Festival": ["fesztival"],
+    "ComedyEvent": ["standup"],
+    "ChildrensEvent": ["csaladi"],
+    "SportsEvent": ["sport"],
 }
 
 
@@ -123,7 +123,7 @@ def extract_jsonld(page_html: str, page_url: str) -> list[dict[str, Any]]:
             events.append(
                 {
                     "title": node.get("name"),
-                    "category": JSONLD_TYPE_MAP.get(node_type, ""),
+                    "categories": JSONLD_TYPE_MAP.get(node_type, []),
                     "city": city,
                     "venue": venue or city,
                     "start_time": node.get("startDate"),
@@ -168,7 +168,7 @@ def extract_ical(ics_text: str, page_url: str) -> list[dict[str, Any]]:
         events.append(
             {
                 "title": title,
-                "category": "",
+                "categories": [],
                 "city": city,
                 "venue": location.split(",")[0].strip() or city,
                 "start_time": getattr(dtstart, "dt", None),
@@ -191,7 +191,10 @@ LLM_SCHEMA = {
         "type": "OBJECT",
         "properties": {
             "title": {"type": "STRING"},
-            "category": {"type": "STRING", "enum": sorted(CATEGORIES)},
+            "categories": {
+                "type": "ARRAY",
+                "items": {"type": "STRING", "enum": sorted(CATEGORIES)},
+            },
             "city": {"type": "STRING"},
             "venue": {"type": "STRING"},
             "start_time": {"type": "STRING"},
@@ -200,7 +203,7 @@ LLM_SCHEMA = {
             "source_url": {"type": "STRING", "nullable": True},
             "image_url": {"type": "STRING", "nullable": True},
         },
-        "required": ["title", "category", "city", "venue", "start_time"],
+        "required": ["title", "categories", "city", "venue", "start_time"],
     },
 }
 
@@ -211,12 +214,14 @@ def extract_llm(text: str, page_url: str) -> list[dict[str, Any]] | None:
         return None
     today = datetime.now(BUDAPEST).date().isoformat()
     prompt = f"""A következő weboldal-szöveg magyarországi eseményeket sorol fel (forrás: {page_url}, mai dátum: {today}).
+A szövegben a linkek a linkelt szöveg után szögletes zárójelben szerepelnek: pl. Esemény címe [https://pelda.hu/esemeny/123].
 Nyerd ki az ÖSSZES jövőbeli eseményt (maximum {MAX_EVENTS_PER_TARGET} db). Szabályok:
-- category: pontosan egy a következők közül: {", ".join(sorted(CATEGORIES))}
+- categories: 1-3 illő kategória a következők közül: {", ".join(sorted(CATEGORIES))}
+  (pl. egy gyerekkoncert: ["konnyuzene", "csaladi"]; szimfonikus est: ["hangverseny"]; DJ-est: ["buli"])
 - start_time / end_time: ISO 8601, Europe/Budapest (pl. 2026-08-15T19:00:00+02:00); end_time lehet null
 - city: a település neve (pl. "Szeged"); venue: a helyszín neve
 - description: max 1000 karakteres magyar összefoglaló (lehet null)
-- source_url: az esemény RÉSZLETOLDALÁNAK teljes URL-je, ha kiolvasható a szövegből; különben null
+- source_url: az esemény RÉSZLETOLDALÁNAK teljes URL-je — a cím melletti [ ... ] linkből; ha nincs, null
 - Ha nincs a szövegben esemény, adj vissza üres tömböt.
 
 Weboldal szövege:
@@ -241,7 +246,9 @@ def process_target(target: dict[str, Any]) -> str:
         _save_state(url, None, f"error:fetch")
         return "error"
 
-    text = common.html_to_text(page_html)
+    # A linkeket megőrizzük a szövegben, hogy az LLM a részletoldal-URL-t
+    # is ki tudja nyerni. A hash ugyanerre a szövegre épül.
+    text = common.html_to_text(page_html, base_url=url)
     page_hash = common.content_hash(text)
 
     # 1. szint: JSON-LD
@@ -280,13 +287,17 @@ def process_target(target: dict[str, Any]) -> str:
         raw_events = llm_events
         method = "llm"
 
-    # Normalizálás + geokódolás + jövőbeliség-szűrés
+    # Normalizálás + geokódolás + körzet- és jövőbeliség-szűrés
     cutoff = datetime.now(BUDAPEST) - timedelta(hours=6)
     prepared: list[dict[str, Any]] = []
+    outside = 0
     for raw in raw_events[:MAX_EVENTS_PER_TARGET]:
         coords = common.geocode_city(str(raw.get("city") or ""))
         if not coords:
             print(f"  ! kihagyva (ismeretlen település): {raw.get('title')!r} / {raw.get('city')!r}")
+            continue
+        if not common.in_focus_area(*coords):
+            outside += 1  # várható a countrywide forrásoknál — csak összesítve logoljuk
             continue
         event = common.build_event(raw, coords, fallback_source_url=url)
         if event is None:
@@ -295,6 +306,8 @@ def process_target(target: dict[str, Any]) -> str:
         if datetime.fromisoformat(event["start_time"]) < cutoff:
             continue  # múltbeli esemény
         prepared.append(event)
+    if outside:
+        print(f"  · {outside} esemény a fókuszkörzeten kívül — kihagyva")
 
     inserted, skipped = common.insert_events(prepared)
     print(f"  ✓ {method}: {len(prepared)} esemény → {inserted} új, {skipped} duplikátum")

@@ -9,14 +9,14 @@
 
 import {
   adminClient,
-  CATEGORIES,
   gateRequest,
   geocodeCity,
+  inFocusArea,
   insertPending,
   json,
+  sanitizeCategories,
   sanitizeText,
   sanitizeUrl,
-  type Category,
 } from '../_shared/utils.ts';
 
 Deno.serve(async (req) => {
@@ -29,15 +29,15 @@ Deno.serve(async (req) => {
   const venue = sanitizeText(body.venue, 200);
   const city = sanitizeText(body.city, 100);
   const description = sanitizeText(body.description, 1000);
-  const category = String(body.category ?? '') as Category;
+  const categories = sanitizeCategories(body.categories ?? body.category);
   const sourceUrl = sanitizeUrl(body.source_url);
   const imageUrl = sanitizeUrl(body.image_url, true);
 
   if (title.length < 3) return json(400, { ok: false, message: 'Az esemény neve túl rövid.' });
   if (venue.length < 2) return json(400, { ok: false, message: 'Add meg a helyszínt.' });
   if (city.length < 2) return json(400, { ok: false, message: 'Add meg a települést.' });
-  if (!CATEGORIES.includes(category)) {
-    return json(400, { ok: false, message: 'Érvénytelen kategória.' });
+  if (!categories) {
+    return json(400, { ok: false, message: 'Válassz 1-3 érvényes kategóriát.' });
   }
   if (!sourceUrl) {
     return json(400, { ok: false, message: 'Érvényes http(s) linket adj meg az esemény oldalához.' });
@@ -64,10 +64,16 @@ Deno.serve(async (req) => {
       message: `Nem sikerült beazonosítani a települést: „${city}". Ellenőrizd a nevét.`,
     });
   }
+  if (!inFocusArea(geo.latitude, geo.longitude)) {
+    return json(400, {
+      ok: false,
+      message: 'A CityPulse jelenleg Szeged és ~70 km-es környékének eseményeit gyűjti — ez a település a körzeten kívül esik.',
+    });
+  }
 
   const result = await insertPending(supabase, {
     title,
-    category,
+    categories,
     city,
     venue,
     latitude: geo.latitude,

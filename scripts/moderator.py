@@ -52,7 +52,7 @@ DECISION_SCHEMA = {
 def event_summary(event: dict[str, Any]) -> str:
     fields = {
         "cím": event.get("title"),
-        "kategória": event.get("category"),
+        "kategóriák": event.get("categories"),
         "település": event.get("city"),
         "helyszín": event.get("venue"),
         "kezdés": event.get("start_time"),
@@ -161,7 +161,7 @@ def main() -> None:
             "status": "eq.pending",
             "order": "created_at.asc",
             "limit": str(MAX_BATCH),
-            "select": "id,title,category,city,venue,start_time,end_time,description,source_url,image_url",
+            "select": "id,title,categories,city,venue,start_time,end_time,description,source_url,image_url",
         },
     )
     print(f"{len(pending)} várakozó beküldés\n")

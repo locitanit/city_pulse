@@ -8,7 +8,7 @@ export default function Hero({ children }: { children?: ReactNode }) {
           Ahol a város <span className="text-primary">lüktet</span>.
         </h1>
         <p className="text-sm font-medium leading-relaxed text-muted lg:text-[17px]">
-          Koncertek, kiállítások, színház és fesztiválok Magyarország minden városából —
+          Koncertek, kiállítások, színház és fesztiválok Szegedről és környékéről —
           naprakészen, egy helyen.
         </p>
       </div>

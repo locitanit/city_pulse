@@ -14,53 +14,53 @@
 -- ------------------------------------------------------------
 
 insert into public.events
-  (title, category, city, venue, latitude, longitude,
+  (title, categories, city, venue, latitude, longitude,
    start_time, end_time, description, source_url, image_url,
    status, origin, moderation_reason)
 values
-  ('Azahriah — Nyáresti Koncert', 'konnyuzene', 'Szeged',
+  ('Azahriah — Nyáresti Koncert', array['konnyuzene']::public.event_category[], 'Szeged',
    'Szegedi Szabadtéri Játékok', 46.2489, 20.1492,
    '2026-07-24 20:00:00+02', '2026-07-24 23:00:00+02',
    'A magyar pop üstököse hatalmas nyáresti show-val érkezik a Dóm térre — vendégekkel és új dalokkal.',
    'https://www.szegediszabadteri.hu/', null, 'approved', 'scraper', 'Hivatalos scraper import.'),
 
-  ('Fény és Forma — Modern Art Kiállítás', 'kiallitas', 'Szeged',
+  ('Fény és Forma — Modern Art Kiállítás', array['kiallitas']::public.event_category[], 'Szeged',
    'REÖK Palota', 46.2521, 20.1441,
    '2026-07-18 10:00:00+02', '2026-08-30 18:00:00+02',
    'Kortárs magyar képzőművészek fényinstallációi és szoborkísérletei a szecessziós palota termeiben.',
    'https://www.reok.hu/', null, 'approved', 'scraper', 'Hivatalos scraper import.'),
 
-  ('Rómeó és Júlia', 'szinhaz', 'Veszprém',
+  ('Rómeó és Júlia', array['szinhaz']::public.event_category[], 'Veszprém',
    'Hangvilla', 47.0921, 17.9096,
    '2026-07-26 19:00:00+02', null,
    'Shakespeare klasszikusa friss, mai rendezésben — a veszprémi társulat nagy sikerű nyári előadása.',
    'https://www.hangvilla.com/', null, 'approved', 'scraper', 'Hivatalos scraper import.'),
 
-  ('VeszprémFest — Jazz a Várban', 'fesztival', 'Veszprém',
+  ('VeszprémFest — Jazz a Várban', array['fesztival']::public.event_category[], 'Veszprém',
    'Történelmi Várnegyed', 47.0972, 17.9036,
    '2026-07-31 21:00:00+02', null,
    'Nemzetközi jazzcsillagok a várnegyed szabadtéri színpadán, borteraszokkal és éjszakai ráadással.',
    'https://www.veszpremfest.hu/', null, 'approved', 'scraper', 'Hivatalos scraper import.'),
 
-  ('Dumaszínház: Nyári Best Of', 'standup', 'Budapest',
+  ('Dumaszínház: Nyári Best Of', array['standup']::public.event_category[], 'Budapest',
    'Akvárium Klub', 47.4977, 19.0547,
    '2026-08-05 19:30:00+02', null,
    'A Dumaszínház kedvenc előadói egy színpadon: válogatás az évad legütősebb poénjaiból.',
    'https://dumaszinhaz.hu/', null, 'approved', 'scraper', 'Hivatalos scraper import.'),
 
-  ('Családi Nap az Állatkertben', 'csaladi', 'Debrecen',
+  ('Családi Nap az Állatkertben', array['csaladi']::public.event_category[], 'Debrecen',
    'Debreceni Állatkert', 47.5560, 21.6180,
    '2026-07-19 10:00:00+02', '2026-07-19 18:00:00+02',
    'Kézműves foglalkozások, állatsimogató és látványetetések egész nap a Nagyerdőben.',
    'https://www.zoodebrecen.hu/', null, 'approved', 'scraper', 'Hivatalos scraper import.'),
 
-  ('Pécsi Éjszakai Futás', 'sport', 'Pécs',
+  ('Pécsi Éjszakai Futás', array['sport']::public.event_category[], 'Pécs',
    'Széchenyi tér', 46.0763, 18.2281,
    '2026-08-08 20:00:00+02', null,
    'Öt és tíz kilométeres éjszakai futam a belváros fényei között — rajtcsomaggal és éremmel.',
    'https://www.pecsiprogramok.hu/', null, 'approved', 'scraper', 'Hivatalos scraper import.'),
 
-  ('Akusztik Est a Várban', 'konnyuzene', 'Veszprém',
+  ('Akusztik Est a Várban', array['konnyuzene']::public.event_category[], 'Veszprém',
    'Veszprémi Vár', 47.0975, 17.9020,
    '2026-08-02 19:30:00+02', null,
    'Meghitt akusztikus koncertsorozat a várfal tövében — hozz plédet, a naplemente ingyen jár hozzá.',
@@ -80,17 +80,17 @@ delete from public.events
    and source_url in ('https://www.margitsziget.hu/', 'https://example.com/spam-ora-akcio');
 
 insert into public.events
-  (title, category, city, venue, latitude, longitude,
+  (title, categories, city, venue, latitude, longitude,
    start_time, end_time, description, source_url, image_url,
    status, origin, moderation_reason)
 values
-  ('Kerti Jazz Piknik', 'konnyuzene', 'Budapest',
+  ('Kerti Jazz Piknik', array['konnyuzene']::public.event_category[], 'Budapest',
    'Margitsziget, Nagyrét', 47.5270, 19.0450,
    '2026-08-15 17:00:00+02', null,
    'Hozd a plédet és a kosarad: naplementés jazz a sziget szívében, ingyenes belépéssel.',
    'https://www.margitsziget.hu/', null, 'pending', 'user', null),
 
-  ('OLCSÓ ÓRÁK AKCIÓ!!!', 'sport', 'Budapest',
+  ('OLCSÓ ÓRÁK AKCIÓ!!!', array['sport']::public.event_category[], 'Budapest',
    'Ismeretlen helyszín', 47.4979, 19.0402,
    '2026-08-01 10:00:00+02', null,
    'Replika órák hihetetlen áron, kattints ide!!!',

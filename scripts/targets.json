@@ -1,21 +1,21 @@
 {
-  "_comment": "CityPulse scraper céllista. A GitHub Actions matrix a listát SHARD_TOTAL szeletre osztja (index % SHARD_TOTAL == SHARD_INDEX). Bővítsd nyugodtan 100+ bejegyzésig — a hash/diff réteg miatt a változatlan oldalak nem fogyasztanak LLM-kvótát. Az 'enabled': false bejegyzések kimaradnak. A Cooltix/Tixa kliens-oldali SPA (a szerver-HTML üres héj), ezért kikapcsolva — headless render vagy API-integráció kellene hozzájuk.",
+  "_comment": "CityPulse scraper céllista — SZEGED ÉS KÖRNYÉKE fókusz (a körzeten kívüli események a scraperben kiszűrődnek). A GitHub Actions matrix a listát SHARD_TOTAL szeletre osztja. A hash/diff réteg miatt a változatlan oldalak nem fogyasztanak LLM-kvótát. Az 'enabled': false bejegyzések kimaradnak. A jegy.hu/city/szeged és a koncert.hu országos aggregátor, de a körzet-szűrő csak a Szeged környéki találatokat engedi be. A grandcafeszeged.hu és pickszeged.hu erről a hálózatról nem volt elérhető — később újrapróbálható. A Dumaszínház JSON-LD-t ad (nincs LLM-költsége), a vidéki turnék szegedi állomásai miatt maradt bent.",
   "targets": [
-    { "name": "Jegy.hu — országos műsor", "url": "https://www.jegy.hu/", "enabled": true },
-    { "name": "Koncert.hu — országos koncertek", "url": "https://koncert.hu/", "enabled": true },
-    { "name": "Budapest Park — programok", "url": "https://www.budapestpark.hu/programok", "enabled": true },
-    { "name": "Magyar Állami Operaház — műsor", "url": "https://www.opera.hu/musor", "enabled": true },
-    { "name": "Cooltix — felfedezés", "url": "https://cooltix.hu/", "enabled": false },
-    { "name": "Tixa — programok", "url": "https://tixa.hu/", "enabled": false },
-    { "name": "A38 Hajó — programok", "url": "https://www.a38.hu/programok", "enabled": true },
-    { "name": "Dürer Kert — programok", "url": "https://www.durerkert.com/", "enabled": true },
-    { "name": "Akvárium Klub — programok", "url": "https://akvariumklub.hu/programok/", "enabled": true },
-    { "name": "Trafó — programok", "url": "https://trafo.hu/programok", "enabled": true },
+    { "name": "Jegy.hu — szegedi műsor", "url": "https://www.jegy.hu/city/szeged", "enabled": true },
     { "name": "Szegedi Szabadtéri Játékok — műsor", "url": "https://www.szegediszabadteri.hu/", "enabled": true },
-    { "name": "Hangvilla Veszprém — programok", "url": "https://www.hangvilla.com/", "enabled": true },
     { "name": "REÖK Palota — kiállítások", "url": "https://www.reok.hu/", "enabled": true },
-    { "name": "VeszprémFest", "url": "https://www.veszpremfest.hu/", "enabled": true },
-    { "name": "Dumaszínház — műsor", "url": "https://dumaszinhaz.hu/", "enabled": true },
-    { "name": "Müpa — programok", "url": "https://www.mupa.hu/programok", "enabled": true }
+    { "name": "Szegedi Nemzeti Színház — műsor", "url": "https://szinhaz.szeged.hu/", "enabled": true },
+    { "name": "Móra Ferenc Múzeum — programok", "url": "https://moramuzeum.hu/", "enabled": true },
+    { "name": "Szent-Györgyi Albert Agóra — programok", "url": "https://agoraszeged.hu/", "enabled": true },
+    { "name": "IH Rendezvényközpont — programok", "url": "https://www.ihrendezvenykozpont.hu/", "enabled": true },
+    { "name": "JATE Klub — programok", "url": "https://www.jateklub.hu/", "enabled": true },
+    { "name": "Belvárosi Mozi Szeged — programok", "url": "https://belvarosimozi.hu/", "enabled": false },
+    { "name": "Szeged Tourism — programajánló", "url": "https://szegedtourism.hu/", "enabled": true },
+    { "name": "Szeged.hu — hírek/programok", "url": "https://www.szeged.hu/", "enabled": true },
+    { "name": "Ópusztaszeri Emlékpark — programok", "url": "https://opusztaszer.hu/", "enabled": true },
+    { "name": "Bessenyei Ferenc Művelődési Központ (Hódmezővásárhely)", "url": "https://bfmk.hu/", "enabled": true },
+    { "name": "Mórahalom — programok", "url": "https://www.morahalom.hu/", "enabled": true },
+    { "name": "Koncert.hu — országos (körzetre szűrve)", "url": "https://koncert.hu/", "enabled": true },
+    { "name": "Dumaszínház — országos turné (körzetre szűrve)", "url": "https://dumaszinhaz.hu/", "enabled": true }
   ]
 }

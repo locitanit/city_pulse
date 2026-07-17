@@ -10,8 +10,37 @@ export const CATEGORIES = [
   'standup',
   'csaladi',
   'sport',
+  'buli',
+  'hangverseny',
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
+export const MAX_CATEGORIES = 3; // egyezik a DB events_categories_count CHECK-jével
+
+/** 1–3 érvényes, egyedi kategória — különben null. */
+export function sanitizeCategories(input: unknown): Category[] | null {
+  const raw = Array.isArray(input) ? input : typeof input === 'string' ? [input] : [];
+  const out: Category[] = [];
+  for (const item of raw) {
+    const c = String(item) as Category;
+    if (CATEGORIES.includes(c) && !out.includes(c)) out.push(c);
+  }
+  return out.length >= 1 && out.length <= MAX_CATEGORIES ? out : null;
+}
+
+// Fókuszkörzet: Szeged és ~70 km-es környéke — ezen kívüli beküldést nem fogadunk
+export const FOCUS_CENTER = { latitude: 46.253, longitude: 20.1414 };
+export const FOCUS_RADIUS_KM = 70;
+
+export function inFocusArea(lat: number, lon: number): boolean {
+  const rad = (x: number) => (x * Math.PI) / 180;
+  const a =
+    Math.sin(rad(lat - FOCUS_CENTER.latitude) / 2) ** 2 +
+    Math.cos(rad(FOCUS_CENTER.latitude)) *
+      Math.cos(rad(lat)) *
+      Math.sin(rad(lon - FOCUS_CENTER.longitude) / 2) ** 2;
+  const km = 2 * 6371.0088 * Math.asin(Math.min(1, Math.sqrt(a)));
+  return km <= FOCUS_RADIUS_KM;
+}
 
 export const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -126,7 +155,7 @@ export async function geocodeCity(
 
 export interface PendingEvent {
   title: string;
-  category: Category;
+  categories: Category[];
   city: string;
   venue: string;
   latitude: number;

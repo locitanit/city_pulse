@@ -49,7 +49,7 @@ export async function fetchEvents(q: EventQuery): Promise<{ events: EventItem[];
 
 export interface SubmitEventPayload {
   title: string;
-  category: Category;
+  categories: Category[];
   city: string;
   venue: string;
   start_time: string;
@@ -134,7 +134,7 @@ function demoFilterEvents(q: EventQuery): { events: EventItem[]; total: number }
     } else if (q.city) {
       if (e.city.toLowerCase() !== q.city.toLowerCase()) return false;
     }
-    if (q.categories.length && !q.categories.includes(e.category)) return false;
+    if (q.categories.length && !e.categories.some((c) => q.categories.includes(c))) return false;
     const effectiveEnd = e.end_time ?? e.start_time;
     if (q.fromISO && new Date(effectiveEnd) < new Date(q.fromISO)) return false;
     if (q.toISO && new Date(e.start_time) > new Date(q.toISO)) return false;

@@ -29,11 +29,18 @@ CATEGORIES = {
     "standup",
     "csaladi",
     "sport",
+    "buli",
+    "hangverseny",
 }
+MAX_CATEGORIES = 3  # egyezik a DB events_categories_count CHECK-jével
 
 # Magyarország befoglaló téglalapja (egyezik a DB CHECK-ekkel)
 HU_LAT = (45.5, 48.8)
 HU_LON = (16.0, 23.2)
+
+# Fókuszkörzet: Szeged és környéke — a körzeten kívüli események kimaradnak
+FOCUS_CENTER = (46.2530, 20.1414)  # Szeged
+FOCUS_RADIUS_KM = float(os.environ.get("FOCUS_RADIUS_KM", "70"))
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
@@ -120,6 +127,23 @@ def _in_hungary(lat: float, lon: float) -> bool:
     return HU_LAT[0] <= lat <= HU_LAT[1] and HU_LON[0] <= lon <= HU_LON[1]
 
 
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    import math
+
+    a = (
+        math.sin(math.radians(lat2 - lat1) / 2) ** 2
+        + math.cos(math.radians(lat1))
+        * math.cos(math.radians(lat2))
+        * math.sin(math.radians(lon2 - lon1) / 2) ** 2
+    )
+    return 2 * 6371.0088 * math.asin(min(1.0, math.sqrt(a)))
+
+
+def in_focus_area(lat: float, lon: float) -> bool:
+    """A koordináta a fókuszkörzeten (Szeged + FOCUS_RADIUS_KM) belül van-e."""
+    return haversine_km(FOCUS_CENTER[0], FOCUS_CENTER[1], lat, lon) <= FOCUS_RADIUS_KM
+
+
 def geocode_city(city: str) -> tuple[float, float] | None:
     """Település → (lat, lon). Először a cities táblából, aztán Nominatimból."""
     key = city.strip().lower()
@@ -164,9 +188,29 @@ def find_known_city(text: str) -> str | None:
 # Szöveg- és dátumkezelés
 # ---------------------------------------------------------------
 
-def html_to_text(html: str, max_chars: int = 40000) -> str:
+def html_to_text(html: str, max_chars: int = 40000, base_url: str | None = None) -> str:
+    """HTML → nyers szöveg. base_url megadásakor a linkeket megőrzi
+    „szöveg [abszolút-URL]" formában, hogy az LLM ki tudja nyerni az
+    esemény-részletoldalak URL-jét."""
     text = re.sub(r"<script[\s\S]*?</script>", " ", html, flags=re.I)
     text = re.sub(r"<style[\s\S]*?</style>", " ", text, flags=re.I)
+    if base_url:
+        from urllib.parse import urljoin
+
+        def _link(m: re.Match) -> str:
+            href = m.group(1).strip()
+            inner = re.sub(r"<[^>]+>", " ", m.group(2))
+            inner = re.sub(r"\s+", " ", inner).strip()
+            if not inner or href.startswith(("#", "javascript:", "mailto:", "tel:")):
+                return f" {inner} "
+            return f" {inner} [{urljoin(base_url, href)}] "
+
+        text = re.sub(
+            r"<a\b[^>]*?href=[\"']([^\"']+)[\"'][^>]*>([\s\S]*?)</a>",
+            _link,
+            text,
+            flags=re.I,
+        )
     text = re.sub(r"<[^>]+>", " ", text)
     text = html_lib.unescape(text)
     text = re.sub(r"\s+", " ", text).strip()
@@ -207,20 +251,21 @@ def parse_dt(value: Any) -> datetime | None:
 
 CATEGORY_KEYWORDS = [
     ("fesztival", r"fesztivál|festival|feszt\b"),
-    ("szinhaz", r"színház|szinhaz|előadás|dráma|musical|opera|balett"),
+    ("hangverseny", r"hangverseny|szimfonikus|filharmón|filharmon|kamarazene|komolyzene|zongoraest|vonósnégyes|oratórium|kórushangverseny"),
+    ("szinhaz", r"színház|szinhaz|előadás|dráma|musical|opera\b|balett"),
     ("kiallitas", r"kiállítás|kiallitas|múzeum|muzeum|galéria|tárlat"),
     ("standup", r"stand.?up|humor|dumaszínház|dumaszinhaz|comedy"),
     ("csaladi", r"családi|csaladi|gyerek|gyermek|báb|matiné"),
+    ("buli", r"\bbuli\b|party|parti\b|\bdj\b|techno|house\b|rave|diszkó|disco"),
     ("sport", r"futás|futas|verseny|sport|túra|tura|maraton|kupa|meccs"),
 ]
 
 
-def guess_category(text: str) -> str:
+def guess_categories(text: str) -> list[str]:
+    """Az ÖSSZES illeszkedő kategória (max MAX_CATEGORIES), default konnyuzene."""
     lowered = text.lower()
-    for cat, pattern in CATEGORY_KEYWORDS:
-        if re.search(pattern, lowered):
-            return cat
-    return "konnyuzene"
+    hits = [cat for cat, pattern in CATEGORY_KEYWORDS if re.search(pattern, lowered)]
+    return hits[:MAX_CATEGORIES] or ["konnyuzene"]
 
 
 # ---------------------------------------------------------------
@@ -250,19 +295,30 @@ def build_event(
     if not re.match(r"^https://", image_url, re.I) or len(image_url) > 2048:
         image_url = None
 
-    category = str(raw.get("category") or "").strip()
-    if category not in CATEGORIES:
-        category = guess_category(f"{title} {raw.get('description') or ''}")
+    # Kategóriák: tömbként vagy (régi) egyes értékként is érkezhet
+    raw_cats = raw.get("categories") or raw.get("category") or []
+    if isinstance(raw_cats, str):
+        raw_cats = [raw_cats]
+    categories: list[str] = []
+    for cat in raw_cats:
+        cat = str(cat).strip()
+        if cat in CATEGORIES and cat not in categories:
+            categories.append(cat)
+    categories = categories[:MAX_CATEGORIES] or guess_categories(
+        f"{title} {raw.get('description') or ''}"
+    )
 
     description = re.sub(r"\s+", " ", str(raw.get("description") or "")).strip()[:1000]
     lat, lon = coords
 
     if len(title) < 3 or len(city) < 2 or start is None or not _in_hungary(lat, lon):
         return None
+    if not in_focus_area(lat, lon):
+        return None  # fókuszkörzeten (Szeged + környéke) kívüli esemény
 
     return {
         "title": title,
-        "category": category,
+        "categories": categories,
         "city": city,
         "venue": venue,
         "latitude": lat,

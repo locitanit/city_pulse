@@ -1,5 +1,7 @@
 export const CATEGORIES = [
   'konnyuzene',
+  'hangverseny',
+  'buli',
   'szinhaz',
   'kiallitas',
   'fesztival',
@@ -10,9 +12,14 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
+// Egy esemény 1–3 kategóriába tartozhat (egyezik a DB CHECK-jével)
+export const MAX_EVENT_CATEGORIES = 3;
+
 // Teljes megnevezés (űrlap, kártya)
 export const CATEGORY_LABELS: Record<Category, string> = {
   konnyuzene: 'Könnyűzene / Koncert',
+  hangverseny: 'Hangverseny / Komolyzene',
+  buli: 'Buli / Party',
   szinhaz: 'Színház',
   kiallitas: 'Kiállítás / Múzeum',
   fesztival: 'Fesztivál',
@@ -24,6 +31,8 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 // Rövid címke a szűrő-pillekhez és a kártya-chipekhez
 export const CATEGORY_PILL_LABELS: Record<Category, string> = {
   konnyuzene: 'Könnyűzene',
+  hangverseny: 'Hangverseny',
+  buli: 'Buli',
   szinhaz: 'Színház',
   kiallitas: 'Kiállítás',
   fesztival: 'Fesztivál',
@@ -35,7 +44,7 @@ export const CATEGORY_PILL_LABELS: Record<Category, string> = {
 export interface EventItem {
   id: string;
   title: string;
-  category: Category;
+  categories: Category[];
   city: string;
   venue: string;
   latitude: number;

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import CategoryPills from '../components/CategoryPills';
 import Turnstile from '../components/Turnstile';
 import {
   fetchCities,
@@ -6,7 +7,7 @@ import {
   submitLink,
   type SubmitResult,
 } from '../lib/api';
-import { CATEGORIES, CATEGORY_LABELS, type Category, type City } from '../lib/types';
+import { MAX_EVENT_CATEGORIES, type Category, type City } from '../lib/types';
 
 type Mode = 'link' | 'form';
 type Status =
@@ -20,7 +21,7 @@ const LABEL_CLS = 'text-[11px] font-extrabold uppercase tracking-[0.08em] text-s
 
 const EMPTY_FORM = {
   title: '',
-  category: '' as Category | '',
+  categories: [] as Category[],
   city: '',
   venue: '',
   start: '',
@@ -76,8 +77,8 @@ export default function SubmitPage() {
       setStatus({ kind: 'done', ok: false, message: 'Kérjük, várd meg a robot-ellenőrzést.' });
       return;
     }
-    if (!form.category) {
-      setStatus({ kind: 'done', ok: false, message: 'Válassz kategóriát.' });
+    if (form.categories.length === 0) {
+      setStatus({ kind: 'done', ok: false, message: 'Válassz legalább egy kategóriát.' });
       return;
     }
     setStatus({ kind: 'sending' });
@@ -85,7 +86,7 @@ export default function SubmitPage() {
       finish(
         await submitEvent({
           title: form.title.trim(),
-          category: form.category,
+          categories: form.categories,
           city: form.city.trim(),
           venue: form.venue.trim(),
           start_time: new Date(form.start).toISOString(),
@@ -102,8 +103,12 @@ export default function SubmitPage() {
     }
   };
 
-  const set = (field: keyof typeof EMPTY_FORM) => (value: string) =>
+  const set = (field: Exclude<keyof typeof EMPTY_FORM, 'categories'>) => (value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
+
+  // Legfeljebb MAX_EVENT_CATEGORIES kategória jelölhető
+  const setCategories = (categories: Category[]) =>
+    setForm((f) => ({ ...f, categories: categories.slice(0, MAX_EVENT_CATEGORIES) }));
 
   const tabCls = (on: boolean) =>
     `flex-1 rounded-[10px] border-[1.5px] px-4 py-3 text-sm font-extrabold transition-colors ${
@@ -167,43 +172,34 @@ export default function SubmitPage() {
               />
             </label>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              <label className="flex flex-col gap-1.5">
-                <span className={LABEL_CLS}>Kategória *</span>
-                <select
-                  required
-                  value={form.category}
-                  onChange={(e) => set('category')(e.target.value)}
-                  className={INPUT_CLS}
-                >
-                  <option value="">Válassz…</option>
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {CATEGORY_LABELS[c]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="relative flex flex-col gap-1.5">
-                <span className={LABEL_CLS}>Település *</span>
-                <select
-                  required
-                  value={form.city}
-                  onChange={(e) => set('city')(e.target.value)}
-                  className={`${INPUT_CLS} cursor-pointer appearance-none pr-10`}
-                >
-                  <option value="">Válassz…</option>
-                  {cities.map((c) => (
-                    <option key={c.name} value={c.name}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                <span className="pointer-events-none absolute bottom-[15px] right-3.5 text-xs text-subtle">
-                  ▾
-                </span>
-              </label>
+            <div className="flex flex-col gap-1.5">
+              <span className={LABEL_CLS}>
+                Kategóriák * (legfeljebb {MAX_EVENT_CATEGORIES} jelölhető)
+              </span>
+              <div className="flex flex-wrap gap-2.5">
+                <CategoryPills selected={form.categories} onChange={setCategories} />
+              </div>
             </div>
+
+            <label className="relative flex flex-col gap-1.5">
+              <span className={LABEL_CLS}>Település *</span>
+              <select
+                required
+                value={form.city}
+                onChange={(e) => set('city')(e.target.value)}
+                className={`${INPUT_CLS} cursor-pointer appearance-none pr-10`}
+              >
+                <option value="">Válassz…</option>
+                {cities.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute bottom-[15px] right-3.5 text-xs text-subtle">
+                ▾
+              </span>
+            </label>
 
             <label className="flex flex-col gap-1.5">
               <span className={LABEL_CLS}>Helyszín * (pl. Szegedi Szabadtéri Játékok)</span>

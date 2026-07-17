@@ -61,7 +61,7 @@ def map_item(item: dict[str, Any]) -> dict[str, Any] | None:
     description = _pick(item, "description", "summary") or ""
     return {
         "title": title,
-        "category": common.guess_category(f"{title} {description}"),
+        "categories": common.guess_categories(f"{title} {description}"),
         "city": city_name,
         "venue": venue,
         "start_time": start,

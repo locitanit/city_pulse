@@ -13,8 +13,10 @@ import {
   CATEGORIES,
   gateRequest,
   geocodeCity,
+  inFocusArea,
   insertPending,
   json,
+  sanitizeCategories,
   sanitizeText,
   sanitizeUrl,
   type Category,
@@ -27,7 +29,7 @@ const MAX_REDIRECTS = 3;
 
 interface Extracted {
   title: string;
-  category: Category;
+  categories: Category[];
   city: string;
   venue: string;
   start_time: string;
@@ -94,10 +96,16 @@ Deno.serve(async (req) => {
       message: `A település („${extracted.city}") nem azonosítható — próbáld a részletes űrlapot.`,
     });
   }
+  if (!inFocusArea(geo.latitude, geo.longitude)) {
+    return json(400, {
+      ok: false,
+      message: 'A CityPulse jelenleg Szeged és ~70 km-es környékének eseményeit gyűjti — ez az esemény a körzeten kívül esik.',
+    });
+  }
 
   const result = await insertPending(supabase, {
     title: extracted.title,
-    category: extracted.category,
+    categories: extracted.categories,
     city: extracted.city,
     venue: extracted.venue,
     latitude: geo.latitude,
@@ -253,7 +261,7 @@ function extractFromJsonLd(html: string): Extracted | null {
 
         return {
           title: sanitizeText(ev.name, 100),
-          category: guessCategory(`${ev.name} ${ev.description ?? ''}`),
+          categories: guessCategories(`${ev.name} ${ev.description ?? ''}`),
           city,
           venue: sanitizeText(location.name ?? city, 200) || city,
           start_time: String(ev.startDate),
@@ -270,15 +278,20 @@ function extractFromJsonLd(html: string): Extracted | null {
 }
 
 /** Egyszerű kulcsszavas kategória-tipp a JSON-LD ágra (az LLM-ág maga kategorizál). */
-function guessCategory(text: string): Category {
+function guessCategories(text: string): Category[] {
   const t = text.toLowerCase();
-  if (/(fesztivál|festival)/.test(t)) return 'fesztival';
-  if (/(színház|szinhaz|előadás|dráma|musical)/.test(t)) return 'szinhaz';
-  if (/(kiállítás|kiallitas|múzeum|muzeum|galéria)/.test(t)) return 'kiallitas';
-  if (/(stand.?up|humor|dumaszínház|dumaszinhaz)/.test(t)) return 'standup';
-  if (/(családi|csaladi|gyerek|gyermek)/.test(t)) return 'csaladi';
-  if (/(futás|futas|verseny|sport|túra|tura|maraton)/.test(t)) return 'sport';
-  return 'konnyuzene';
+  const rules: Array<[Category, RegExp]> = [
+    ['fesztival', /(fesztivál|festival)/],
+    ['hangverseny', /(hangverseny|szimfonikus|filharmón|filharmon|kamarazene|komolyzene|zongoraest)/],
+    ['szinhaz', /(színház|szinhaz|előadás|dráma|musical)/],
+    ['kiallitas', /(kiállítás|kiallitas|múzeum|muzeum|galéria)/],
+    ['standup', /(stand.?up|humor|dumaszínház|dumaszinhaz)/],
+    ['csaladi', /(családi|csaladi|gyerek|gyermek)/],
+    ['buli', /(\bbuli\b|party|\bdj\b|techno|rave|diszkó|disco)/],
+    ['sport', /(futás|futas|verseny|sport|túra|tura|maraton)/],
+  ];
+  const hits = rules.filter(([, re]) => re.test(t)).map(([c]) => c).slice(0, 3);
+  return hits.length ? hits : ['konnyuzene'];
 }
 
 // ---------------------------------------------------------------
@@ -303,12 +316,14 @@ async function extractWithGemini(text: string, url: string): Promise<Extracted |
     console.error('GEMINI_API_KEY hiányzik — a link-drop LLM-ág nem elérhető');
     return null;
   }
-  const model = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
+  // A gemini-2.5-flash új fiókoknak már nem elérhető (404)
+  const model = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.5-flash';
 
   const prompt = `A következő weboldal-szöveg egy magyarországi eseményt ír le (forrás: ${url}).
 Nyerd ki az esemény adatait. Ha több esemény van, a legkorábbi jövőbelit vedd.
 Válaszolj KIZÁRÓLAG a megadott JSON sémának megfelelően.
-- category: pontosan egy a következők közül: ${CATEGORIES.join(', ')}
+- categories: 1-3 illő kategória a következők közül: ${CATEGORIES.join(', ')}
+  (pl. egy gyerekkoncert: ["konnyuzene", "csaladi"])
 - start_time / end_time: ISO 8601 (Europe/Budapest, pl. 2026-08-15T19:00:00+02:00); end_time lehet null
 - city: a település neve (pl. "Szeged"); venue: a helyszín neve
 - description: max 1000 karakteres magyar összefoglaló
@@ -332,7 +347,10 @@ ${text}`;
               type: 'OBJECT',
               properties: {
                 title: { type: 'STRING' },
-                category: { type: 'STRING', enum: [...CATEGORIES] },
+                categories: {
+                  type: 'ARRAY',
+                  items: { type: 'STRING', enum: [...CATEGORIES] },
+                },
                 city: { type: 'STRING' },
                 venue: { type: 'STRING' },
                 start_time: { type: 'STRING' },
@@ -340,7 +358,7 @@ ${text}`;
                 description: { type: 'STRING', nullable: true },
                 image_url: { type: 'STRING', nullable: true },
               },
-              required: ['title', 'category', 'city', 'venue', 'start_time'],
+              required: ['title', 'categories', 'city', 'venue', 'start_time'],
             },
           },
         }),
@@ -351,18 +369,21 @@ ${text}`;
       return null;
     }
     const data = await res.json();
-    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    // A gondolkodó modellek "thought" részeket is adhatnak — csak a válasz-szöveg kell
+    const parts: Array<{ text?: string; thought?: boolean }> =
+      data?.candidates?.[0]?.content?.parts ?? [];
+    const raw = parts.filter((p) => !p.thought).map((p) => p.text ?? '').join('');
     if (!raw) return null;
     const parsed = JSON.parse(raw);
 
     const title = sanitizeText(parsed.title, 100);
     const city = sanitizeText(parsed.city, 100);
     if (title.length < 3 || city.length < 2) return null;
-    const category = CATEGORIES.includes(parsed.category) ? (parsed.category as Category) : 'konnyuzene';
+    const categories = sanitizeCategories(parsed.categories) ?? (['konnyuzene'] as Category[]);
 
     return {
       title,
-      category,
+      categories,
       city,
       venue: sanitizeText(parsed.venue, 200) || city,
       start_time: String(parsed.start_time ?? ''),

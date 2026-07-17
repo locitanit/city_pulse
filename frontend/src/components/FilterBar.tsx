@@ -24,7 +24,7 @@ export default function FilterBar({ cities, filters, onChange }: Props) {
             onChange={(e) => onChange({ ...filters, city: e.target.value || null })}
             className="w-full cursor-pointer appearance-none rounded-[10px] border-[1.5px] border-line-strong bg-white px-3.5 py-3 pr-10 text-[15px] font-bold text-ink outline-none focus:border-primary"
           >
-            <option value="">Egész Magyarország</option>
+            <option value="">Szeged és környéke</option>
             {cities.map((c) => (
               <option key={c.name} value={c.name}>
                 {c.name}

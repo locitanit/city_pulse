@@ -11,6 +11,8 @@ const PATTERNS: Record<'primary' | 'accent' | 'gray', string> = {
 
 const CATEGORY_PATTERN: Record<Category, keyof typeof PATTERNS> = {
   konnyuzene: 'primary',
+  hangverseny: 'gray',
+  buli: 'primary',
   szinhaz: 'gray',
   kiallitas: 'accent',
   fesztival: 'accent',
@@ -23,6 +25,9 @@ const CATEGORY_PATTERN: Record<Category, keyof typeof PATTERNS> = {
 // akkor jelenik meg, ha az eseménynek nincs saját image_url-je.
 const CATEGORY_IMAGES: Record<Category, string> = {
   konnyuzene: '/images/categories/konnyuzene.jpg',
+  // Az új kategóriák saját alapkép híján a legközelebbi meglévőt kapják
+  hangverseny: '/images/categories/szinhaz.jpg',
+  buli: '/images/categories/konnyuzene.jpg',
   szinhaz: '/images/categories/szinhaz.jpg',
   kiallitas: '/images/categories/kiallitas.jpg',
   fesztival: '/images/categories/fesztival.jpg',
@@ -37,6 +42,8 @@ function fmtKm(km: number): string {
 
 export default function EventCard({ event }: { event: EventItem }) {
   const badge = fmtBadge(event.start_time);
+  // Az első kategória adja a kártya vizuális stílusát (minta / alapkép)
+  const primary = event.categories[0] ?? 'konnyuzene';
 
   return (
     // Az egész kártya egyetlen link az esemény eredeti oldalára
@@ -48,16 +55,16 @@ export default function EventCard({ event }: { event: EventItem }) {
     >
       <div
         className="relative grid h-[168px] place-items-center"
-        style={{ background: PATTERNS[CATEGORY_PATTERN[event.category]] }}
+        style={{ background: PATTERNS[CATEGORY_PATTERN[primary]] }}
       >
         {/* A minta + címke csak akkor látszik, ha a kép betöltése elbukik */}
         <span className="rounded-md bg-white/75 px-2.5 py-1 font-mono text-xs text-body">
-          {CATEGORY_PILL_LABELS[event.category].toLowerCase()}
+          {CATEGORY_PILL_LABELS[primary].toLowerCase()}
         </span>
-        {/* Nincs loading="lazy": a 7 kategóriakép cache-ből ismétlődik, és a
+        {/* Nincs loading="lazy": a kategóriaképek cache-ből ismétlődnek, és a
             lazy ütemezés háttér-tabokban/előnézetekben megbízhatatlan. */}
         <img
-          src={event.image_url ?? CATEGORY_IMAGES[event.category]}
+          src={event.image_url ?? CATEGORY_IMAGES[primary]}
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
           onError={(e) => {
@@ -73,11 +80,18 @@ export default function EventCard({ event }: { event: EventItem }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-[9px] p-[18px] pb-5">
-        <div className="flex items-center justify-between">
-          <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.07em] text-primary-dark">
-            {CATEGORY_PILL_LABELS[event.category]}
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex flex-wrap gap-1.5">
+            {event.categories.map((c) => (
+              <span
+                key={c}
+                className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.07em] text-primary-dark"
+              >
+                {CATEGORY_PILL_LABELS[c]}
+              </span>
+            ))}
           </span>
-          <span className="text-[13px] font-bold text-subtle">
+          <span className="shrink-0 text-[13px] font-bold text-subtle">
             {fmtWhen(event.start_time, event.end_time)}
           </span>
         </div>
