@@ -338,6 +338,10 @@ def gemini_json(prompt: str, response_schema: dict[str, Any]) -> Any:
                             "temperature": 0,
                             "response_mime_type": "application/json",
                             "response_schema": response_schema,
+                            # A gondolkodó modellek a thought-tokeneket is a
+                            # kimeneti keretből fizetik — az alapérték mellett
+                            # a hosszú esemény-JSON csonkolódott.
+                            "maxOutputTokens": 65536,
                         },
                     },
                     timeout=300,
@@ -352,9 +356,15 @@ def gemini_json(prompt: str, response_schema: dict[str, Any]) -> Any:
                 parts = data["candidates"][0]["content"]["parts"]
                 raw = "".join(p.get("text", "") for p in parts if not p.get("thought"))
                 return json.loads(raw)
-            except Exception as exc:
-                print(f"  ! Gemini hiba ({model}): {exc}")
-                return None
-        _exhausted_models.add(model)
-        print(f"  ! {model} kimerült/elérhetetlen — váltás a következő modellre")
+            except (json.JSONDecodeError, KeyError, IndexError) as exc:
+                # Csonka/hibás válasz — temperature=0 mellett ugyanez jönne
+                # újra, ezért másik modellel próbálkozunk.
+                print(f"  ! Gemini válasz-hiba ({model}): {exc} — modellváltás")
+                break
+            except requests.RequestException as exc:
+                print(f"  ! Gemini hálózati hiba ({model}): {exc} — {attempt + 1}. próba")
+                continue
+        else:
+            _exhausted_models.add(model)
+            print(f"  ! {model} kimerült/elérhetetlen — váltás a következő modellre")
     return None
